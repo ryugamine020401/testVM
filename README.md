@@ -1,3 +1,7 @@
+### Name
+
+        README.md
+
 
 ### Install
 
@@ -8,6 +12,4 @@
         node server.js
 
         - Go to
-        localhost:3001/member1.html
-        localhost:3001/member2.html
-         
+        localhost:3001/index.html
