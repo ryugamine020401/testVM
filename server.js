@@ -12,8 +12,7 @@ let server = http.createServer((request, response) => {
                 <img src="https://i1.sndcdn.com/artworks-fBvQUKQfO8Kervzy-PnlM0g-t500x500.jpg">');
             response.end();
             break;
-        case '/member1.html':
-        case '/member2.html':
+        case '/index.html':
             fs.readFile(__dirname + path, (error, data) => {
                 if (error) {
                     response.writeHead(404);
