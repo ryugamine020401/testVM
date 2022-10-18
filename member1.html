@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>member 1</title>
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <script>
+        const NAME = 'member 1';
+        let socket = io.connect();
+        socket.on('chatroom-refresh', (message) => {
+            document.getElementById("chatroom").innerHTML += `<div>
+                <span>${message.account}</span>
+                <span> : </span>
+                <span>${message.content}</span>
+            </div>`
+        });
+        let sent_to_Server = function () {
+            let message = document.getElementById("chat-input").value;
+            if (message != '') socket.emit('chatroom-message', {'account': NAME, 'content': message});
+            document.getElementById("chat-input").value = '';
+        }
+    </script>
+    <h1>member 1</h1>
+    <div id="chatroom"></div>
+    <div>
+        <input id="chat-input">
+        <button onclick="sent_to_Server()">送出</button>
+    </div>
+</body>
+</html>
