@@ -1,6 +1,7 @@
 let http = require('http');
 let url = require('url');
 let fs = require('fs');
+let member = 0;
 
 let server = http.createServer((request, response) => {
     console.log('connection');
@@ -35,6 +36,12 @@ let server = http.createServer((request, response) => {
 
 let server_io = require('socket.io')(server);
 server_io.sockets.on('connection', (socket) => {
+    member += 1;
+    server_io.emit('member-refresh', member);
+    socket.on('disconnect', () => {
+        member -= 1;
+        server_io.emit('member-refresh', member);
+    });
     socket.on('chatroom-message', (message) => {
         server_io.emit('chatroom-refresh', message);
     });
