@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>index</title>
     <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/main.js" defer></script>
 </head>
 <body>
     <!-- ###################################################################### -->
@@ -15,26 +16,6 @@
         <input id="chat-input">
         <button onclick="sent_to_Server()">送出</button>
     </div>
-    <!-- ###################################################################### -->
-    <script>
-        let socket = io.connect();
-        const username = window.prompt('輸入名字', 'USER') || 'USER';
-        document.getElementById("username").innerText = username;
-
-        socket.on('chatroom-refresh', (message) => {
-            document.getElementById("chatroom").innerHTML += `<div>
-                <span>${message.account}</span>
-                <span> : </span>
-                <span>${message.content}</span>
-            </div>`
-        });
-
-        let sent_to_Server = function () {
-            let message = document.getElementById("chat-input").value;
-            if (message != '') socket.emit('chatroom-message', {'account': username, 'content': message});
-            document.getElementById("chat-input").value = '';
-        }
-    </script>
     <!-- ###################################################################### -->
 </body>
 </html>

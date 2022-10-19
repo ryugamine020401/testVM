@@ -13,6 +13,7 @@ let server = http.createServer((request, response) => {
             response.end();
             break;
         case '/index.html':
+        case '/js/main.js':
             fs.readFile(__dirname + path, (error, data) => {
                 if (error) {
                     response.writeHead(404);
