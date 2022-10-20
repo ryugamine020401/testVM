@@ -1,3 +1,6 @@
+const HOST = '127.0.0.1';
+const PORT = 3001;
+
 let http = require('http');
 let url = require('url');
 let fs = require('fs');
@@ -47,4 +50,4 @@ server_io.sockets.on('connection', (socket) => {
     });
 });
 
-server.listen(3001);
+server.listen(PORT, HOST);
