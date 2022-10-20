@@ -1,3 +1,4 @@
+//const HOST = '192.168.43.6';
 const HOST = '127.0.0.1';
 const PORT = 3001;
 
@@ -38,7 +39,7 @@ let server = http.createServer((request, response) => {
 });
 
 let server_io = require('socket.io')(server);
-server_io.sockets.on('connection', (socket) => {
+server_io.on('connection', (socket) => {
     member += 1;
     server_io.emit('member-refresh', member);
     socket.on('disconnect', () => {
