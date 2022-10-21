@@ -35,12 +35,12 @@ function Init() {
             <span>${message.username}</span>
             <span> : </span>
             <span>${message.content}</span>
-        </div>`
+        </div>`;
     });
 
     /* somebody join or leave */
     socket.on('member-refresh', (member) => {
-        document.getElementById("number-of-people").innerText = `線上人數 : ${member}`
+        document.getElementById("number-of-people").innerText = `線上人數 : ${member}`;
     });
 
     /* just do it */
@@ -58,15 +58,22 @@ function Init() {
         socket.emit('new-user-request', yourid);
     });
 
+    /* printout p2p message when recrive */
+    myPeer.on("connection", (conn) => {
+        conn.on("data", (data) => {
+            console.log(data);
+        });
+    });
+
     /* new client need to know all user id for p2p */
     socket.on('all-user-id', (id_arr) => {
         userid_arr = [...id_arr];
         // console.log('all user expect self: ', userid_arr);
         // 未連接網路，準備連接網路中所有的user
         userid_arr.map( (id) => {
-            const conn = myPeer.connect(id);
+            let conn = myPeer.connect(id);
             conn.on("open", () => {
-                conn.send("hi!");
+                conn.send(`hi! I am your kouhai: ${yourname}`);
             });
         });
     });
@@ -76,20 +83,13 @@ function Init() {
         if (yourid != userid) {
             // 已經連接網路，準備連接新進來的user
             // console.log('new user: ', id);
+            let conn = myPeer.connect(userid);
+            conn.on("open", () => {
+                conn.send(`hi! I am your senpai: ${yourname}`);
+            });
         }
     });
-
-    // ----------------------------------------
-    myPeer.on("connection", (conn) => {
-        conn.on("data", (data) => {
-            // Will print 'hi!'
-            console.log(data);
-        });
-        conn.on("open", () => {
-            conn.send("hello!");
-        });
-    });
-
+    
     // ----------------------------------------
 }
 
