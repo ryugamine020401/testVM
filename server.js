@@ -1,3 +1,4 @@
+/* ###################################################################### */
 //const HOST = '192.168.43.6';
 const HOST = '127.0.0.1';
 const PORT = 3001;
@@ -5,8 +6,10 @@ const PORT = 3001;
 let http = require('http');
 let url = require('url');
 let fs = require('fs');
-let member = 0;
+let member = 0; // number of people online
+let userid_arr = []; // user-id-list
 
+/* ###################################################################### */
 let server = http.createServer((request, response) => {
     console.log('connection');
     let path = url.parse(request.url).pathname;
@@ -38,17 +41,49 @@ let server = http.createServer((request, response) => {
     }
 });
 
+/* ###################################################################### */
 let server_io = require('socket.io')(server);
 server_io.on('connection', (socket) => {
     member += 1;
+    /* give all user number of people who still online */
     server_io.emit('member-refresh', member);
+
+    /* when somebody disconnect */
     socket.on('disconnect', () => {
         member -= 1;
+        /* give all user number of people who still online */
         server_io.emit('member-refresh', member);
+        userid_arr = [];
+        /* let all user give their id again for refresh user-id-list */
+        server_io.emit('send-your-id');
     });
-    socket.on('chatroom-message', (message) => {
+
+    // ----------------------------------------
+    /* receive all user id (when somebody disconnect, need to see who still online) */
+    socket.on('send-id', (userid) => {
+        /* add id to user-id-list (in server) */
+        userid_arr = [userid, ...userid_arr];
+        // server_io.emit('server-test', userid_arr);
+    });
+
+    /* somebody send a message in chatroom */
+    socket.on('new-chat-message', (message) => {
+        /* give all user the message and who gives */
         server_io.emit('chatroom-refresh', message);
     });
+
+    /* new client want to add into p2p network */
+    socket.on('new-user-request', (userid) => {
+        /* give new client all user id (except new client) */
+        socket.emit('all-user-id', userid_arr);
+        /* give all user (except new client) new client id */
+        server_io.emit('new-user-id', userid);
+        /* refresh user-id-list (in server) */
+        userid_arr = [userid, ...userid_arr];
+    });
+
+    // ----------------------------------------
 });
 
 server.listen(PORT, HOST);
+/* ###################################################################### */

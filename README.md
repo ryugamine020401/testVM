@@ -6,9 +6,11 @@
 
         - install
         npm install socket.io
+        npm install peer
 
         -run code
         node server.js
+        peerjs --port 3000
 
         - Go to
         localhost:3001/index.html
@@ -28,5 +30,3 @@
 
         - Go to
         localhost:3001/index.html
-
-        
