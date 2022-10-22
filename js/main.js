@@ -7,19 +7,19 @@ let myPeer = new Peer(undefined, {
     port: PEER_PORT
 });
 
-let myname; // user name
-let myid; // peer id
-let userid_arr = []; // user-id-list
+let myname;
+let myid;
+let userid_arr = [];
 
 let cameraStatus = false;
 // let micStatus = false;
 
-let videoBox; // <div> tag which put videos 
-let myVideo; // local video (element <video>)
 let localStream;
-let peers = {};
+let videoBox = document.getElementById("videoBox");
+let myVideo = document.createElement('video');
 
 /* ###################################################################### */
+/* creat <video> tag in DOM */
 function add_newVideo(video, stream) {
     video.srcObject = stream;
     video.addEventListener('loadedmetadata', () => {
@@ -28,6 +28,7 @@ function add_newVideo(video, stream) {
     videoBox.append(video);
 }
 
+/* close local media device and remove <video> tag in DOM */
 function stopCapture() {
     if (localStream) {
         /* stop fetch media */
@@ -38,6 +39,7 @@ function stopCapture() {
     }
 }
 
+/* open local media device and do streaming to other client */
 function capture_and_brocast() {
     navigator.mediaDevices.getUserMedia({
         audio: true,
@@ -54,6 +56,7 @@ function capture_and_brocast() {
 }
 
 /* ###################################################################### */
+/* p2p send video to all client */
 function brocastStreaming(stream) {
     userid_arr.map( (userid) => {
         if (userid != myid) {
@@ -65,6 +68,7 @@ function brocastStreaming(stream) {
     });
 }
 
+/* p2p receive video, as well as remove <video> obj in DOM if somebody stop streaming */
 function listenStreaming() {
     myPeer.on('call', (call) => {
         call.answer(null);
@@ -87,6 +91,7 @@ function listenStreaming() {
 }
 
 /* ###################################################################### */
+/* button onclick event: open or close camera and control streaming... */
 function toggleCamera() {
     cameraStatus = (cameraStatus == true)? false: true;
     document.getElementById("camera-toggle").innerText = (cameraStatus == true)? "關閉相機": "開啟相機";
@@ -98,6 +103,7 @@ function toggleCamera() {
     }
 }
 
+/* button onclick event: send message to chatroom */
 function sendchat_to_Server() {
     let message = document.getElementById("chat-input").value;
     if (message != '') {
@@ -117,9 +123,7 @@ function Init() {
     /* add event in DOM */
     document.getElementById("chat-send").addEventListener('click', sendchat_to_Server);
     document.getElementById("camera-toggle").addEventListener('click', toggleCamera);
-    /* assign someting to obj */
-    videoBox = document.getElementById("videoBox");
-    myVideo = document.createElement('video');
+    /* we dont want to listen voice from ourself */
     myVideo.muted = true;
 
     // ----------------------------------------
@@ -147,7 +151,6 @@ function Init() {
     myPeer.on('open', (id) => {
         myid = id;
         socket.emit('new-user-request', myid);
-        console.log(myid);
     });
 
     /* server give all user id: refresh user-id-list */
@@ -156,7 +159,6 @@ function Init() {
     });
 
     // ----------------------------------------
-
 }
 
 /* ###################################################################### */

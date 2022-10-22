@@ -100,8 +100,6 @@ server_io.on('connection', (socket) => {
         server_io.emit('chatroom-refresh', message);
     });
 
-
-
     // ----------------------------------------
 });
 
