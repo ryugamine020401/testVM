@@ -36,6 +36,7 @@ function stopCapture() {
         /* release source */
         myVideo.srcObject = null;
         myVideo.remove();
+        localStream = null;
     }
 }
 
@@ -56,19 +57,19 @@ function capture_and_brocast() {
 }
 
 /* ###################################################################### */
-/* p2p send video to all client */
+/* p2p send video:
+   send stream pakage to client which is in list */
 function brocastStreaming(stream) {
     userid_arr.map( (userid) => {
         if (userid != myid) {
+            console.log('連線後再傳');
             let call = myPeer.call(userid, stream);
         }
     });
-    socket.on('new-user-id', (userid) => {
-        let call = myPeer.call(userid, stream);
-    });
 }
 
-/* p2p receive video, as well as remove <video> obj in DOM if somebody stop streaming */
+/* p2p receive video:
+   receive stream pakage and control <video> obj in DOM if somebody stop/start streaming */
 function listenStreaming() {
     myPeer.on('call', (call) => {
         call.answer(null);
@@ -85,13 +86,15 @@ function listenStreaming() {
         });
         /*call.on('close', () => {
             console.log('remove video');
+            video.srcObject = null;
             video.remove();
         });*/
     });
 }
 
 /* ###################################################################### */
-/* button onclick event: open or close camera and control streaming... */
+/* button onclick event:
+   open or close camera and control streaming... */
 function toggleCamera() {
     cameraStatus = (cameraStatus == true)? false: true;
     document.getElementById("camera-toggle").innerText = (cameraStatus == true)? "關閉相機": "開啟相機";
@@ -103,7 +106,8 @@ function toggleCamera() {
     }
 }
 
-/* button onclick event: send message to chatroom */
+/* button onclick event:
+   send message to chatroom */
 function sendchat_to_Server() {
     let message = document.getElementById("chat-input").value;
     if (message != '') {
@@ -156,6 +160,13 @@ function Init() {
     /* server give all user id: refresh user-id-list */
     socket.on('all-user-id', (id_arr) => {
         userid_arr = id_arr;
+    });
+
+    /* p2p send video:
+       when new client join the room, also send stream pakage */
+    socket.on('new-user-id', (userid) => {
+        console.log('中途加入');
+        let call = myPeer.call(userid, localStream);
     });
 
     // ----------------------------------------
