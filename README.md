@@ -27,6 +27,3 @@
 
         - run code
         npm run test
-
-        - Go to
-        localhost:3001/index.html
