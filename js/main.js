@@ -62,7 +62,7 @@ function capture_and_brocast() {
 function brocastStreaming(stream) {
     userid_arr.map( (userid) => {
         if (userid != myid) {
-            console.log('連線後再傳');
+            // console.log('連線後再傳');
             let call = myPeer.call(userid, stream);
         }
     });
@@ -165,8 +165,10 @@ function Init() {
     /* p2p send video:
        when new client join the room, also send stream pakage */
     socket.on('new-user-id', (userid) => {
-        console.log('中途加入');
-        let call = myPeer.call(userid, localStream);
+        if (userid != myid) {
+            // console.log('中途加入');
+            let call = myPeer.call(userid, localStream);
+        }
     });
 
     // ----------------------------------------
