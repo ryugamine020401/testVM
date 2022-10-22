@@ -8,6 +8,7 @@ let url = require('url');
 let fs = require('fs');
 let member = 0; // number of people online
 let userid_arr = []; // user-id-list
+let temp_arr = [];
 
 /* ###################################################################### */
 let server = http.createServer((request, response) => {
@@ -42,8 +43,11 @@ let server = http.createServer((request, response) => {
 });
 
 /* ###################################################################### */
+server.listen(PORT, HOST);
 let server_io = require('socket.io')(server);
+
 server_io.on('connection', (socket) => {
+    // ----------------------------------------
     member += 1;
     /* give all user number of people who still online */
     server_io.emit('member-refresh', member);
@@ -53,23 +57,10 @@ server_io.on('connection', (socket) => {
         member -= 1;
         /* give all user number of people who still online */
         server_io.emit('member-refresh', member);
-        userid_arr = [];
         /* let all user give their id again for refresh user-id-list */
+        temp_arr = [...userid_arr];
+        userid_arr = [];
         server_io.emit('send-your-id');
-    });
-
-    // ----------------------------------------
-    /* receive all user id (when somebody disconnect, need to see who still online) */
-    socket.on('send-id', (userid) => {
-        /* add id to user-id-list (in server) */
-        userid_arr = [userid, ...userid_arr];
-        // server_io.emit('server-test', userid_arr);
-    });
-
-    /* somebody send a message in chatroom */
-    socket.on('new-chat-message', (message) => {
-        /* give all user the message and who gives */
-        server_io.emit('chatroom-refresh', message);
     });
 
     /* new client want to add into p2p network */
@@ -79,8 +70,39 @@ server_io.on('connection', (socket) => {
         server_io.emit('all-user-id', userid_arr);
     });
 
+    /* receive all user id (when somebody disconnect, need to see who still online) */
+    socket.on('send-id', (userid) => {
+        /* add id to user-id-list (in server) */
+        userid_arr = [userid, ...userid_arr];
+        /* somebody leave */
+        if (temp_arr != []) {
+            /* remove the client id who still online */
+            temp_arr.splice(temp_arr.indexOf(userid), 1);
+            /* the final one means the left one */
+            if (!temp_arr[1]) {
+                /* send new info to every client */
+                server_io.emit('all-user-id', userid_arr);
+                server_io.emit('close-video', temp_arr[0]);
+                temp_arr = [];
+            }
+        }
+    });
+
+    // ----------------------------------------
+    /* somebody left the room or stop capture */
+    socket.on('stop-stream', (userid) => {
+        server_io.emit('close-video', userid);
+    });
+
+    /* somebody send a message in chatroom */
+    socket.on('new-chat-message', (message) => {
+        /* give all user the message and who gives */
+        server_io.emit('chatroom-refresh', message);
+    });
+
+
+
     // ----------------------------------------
 });
 
-server.listen(PORT, HOST);
 /* ###################################################################### */

@@ -41,7 +41,7 @@ function stopCapture() {
 function capture_and_brocast() {
     navigator.mediaDevices.getUserMedia({
         audio: true,
-        video: true
+        video: {width: 200, height: 200}
     })
     .then( (stream) => {
         localStream = stream;
@@ -58,12 +58,10 @@ function brocastStreaming(stream) {
     userid_arr.map( (userid) => {
         if (userid != myid) {
             let call = myPeer.call(userid, stream);
-            peers[userid] = call;
         }
     });
     socket.on('new-user-id', (userid) => {
         let call = myPeer.call(userid, stream);
-        peers[userid] = call;
     });
 }
 
@@ -75,9 +73,16 @@ function listenStreaming() {
         call.on('stream', (remoteStream) => {
             add_newVideo(video, remoteStream);
         });
-        call.on('close', () => {
-            video.remove();
+        socket.on('close-video', (userid) => {
+            if (call.peer == userid){
+                video.srcObject = null;
+                video.remove();
+            }
         });
+        /*call.on('close', () => {
+            console.log('remove video');
+            video.remove();
+        });*/
     });
 }
 
@@ -89,6 +94,7 @@ function toggleCamera() {
         capture_and_brocast();
     } else {
         stopCapture();
+        socket.emit('stop-stream', myid);
     }
 }
 
@@ -102,6 +108,7 @@ function sendchat_to_Server() {
 
 /* ###################################################################### */
 function Init() {
+    // ----------------------------------------
     /* connect to server */
     socket = io.connect();
     /* input name and show */
@@ -115,7 +122,6 @@ function Init() {
     myVideo = document.createElement('video');
     myVideo.muted = true;
 
-    // socket.on('server-test', (message) => { console.log(message); });
     // ----------------------------------------
     /* somebody sent a message, receive it and show on the chatroom */
     socket.on('chatroom-refresh', (message) => {
@@ -141,6 +147,7 @@ function Init() {
     myPeer.on('open', (id) => {
         myid = id;
         socket.emit('new-user-request', myid);
+        console.log(myid);
     });
 
     /* server give all user id: refresh user-id-list */
@@ -149,8 +156,9 @@ function Init() {
     });
 
     // ----------------------------------------
+
 }
 
+/* ###################################################################### */
 Init();
 listenStreaming();
-/* ###################################################################### */
