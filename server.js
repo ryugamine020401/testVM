@@ -74,12 +74,9 @@ server_io.on('connection', (socket) => {
 
     /* new client want to add into p2p network */
     socket.on('new-user-request', (userid) => {
-        /* give new client all user id (except new client) */
-        socket.emit('all-user-id', userid_arr);
-        /* give all user (except new client) new client id */
-        server_io.emit('new-user-id', userid);
-        /* refresh user-id-list (in server) */
         userid_arr = [userid, ...userid_arr];
+        server_io.emit('new-user-id', userid);
+        server_io.emit('all-user-id', userid_arr);
     });
 
     // ----------------------------------------

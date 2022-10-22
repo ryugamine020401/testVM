@@ -17,6 +17,7 @@ let cameraStatus = false;
 let videoBox; // <div> tag which put videos 
 let myVideo; // local video (element <video>)
 let localStream;
+let peers = {};
 
 /* ###################################################################### */
 function add_newVideo(video, stream) {
@@ -27,7 +28,17 @@ function add_newVideo(video, stream) {
     videoBox.append(video);
 }
 
-function captureVideo() {
+function stopCapture() {
+    if (localStream) {
+        /* stop fetch media */
+        localStream.getTracks().forEach((track) => {track.stop();});
+        /* release source */
+        myVideo.srcObject = null;
+        myVideo.remove();
+    }
+}
+
+function capture_and_brocast() {
     navigator.mediaDevices.getUserMedia({
         audio: true,
         video: true
@@ -41,49 +52,46 @@ function captureVideo() {
         console.error(error.message);
     });
 }
-function stopCapture() {
-    if (localStream) {
-        /* stop fetch media */
-        localStream.getTracks().forEach((track) => {track.stop();});
-        /* release source */
-        myVideo.srcObject = null;
-        myVideo.remove();
-    }
-}
-
-function toggleCamera() {
-    cameraStatus = (cameraStatus == true)? false: true;
-    document.getElementById("camera-toggle").innerText = (cameraStatus == true)? "關閉相機": "開啟相機";
-    if (cameraStatus == true) {
-        captureVideo();
-    } else {
-        stopCapture();
-    }
-}
 
 /* ###################################################################### */
 function brocastStreaming(stream) {
-    userid_arr.map( (id) => {
-        console.log(stream);
-        let call = myPeer.call(id, stream);
-        console.log(call);
+    userid_arr.map( (userid) => {
+        if (userid != myid) {
+            let call = myPeer.call(userid, stream);
+            peers[userid] = call;
+        }
+    });
+    socket.on('new-user-id', (userid) => {
+        let call = myPeer.call(userid, stream);
+        peers[userid] = call;
     });
 }
 
 function listenStreaming() {
     myPeer.on('call', (call) => {
-        console.log('listening');
         call.answer(null);
         let video = document.createElement('video');
         video.muted = true;
         call.on('stream', (remoteStream) => {
-            console.log(remoteStream);
             add_newVideo(video, remoteStream);
+        });
+        call.on('close', () => {
+            video.remove();
         });
     });
 }
 
 /* ###################################################################### */
+function toggleCamera() {
+    cameraStatus = (cameraStatus == true)? false: true;
+    document.getElementById("camera-toggle").innerText = (cameraStatus == true)? "關閉相機": "開啟相機";
+    if (cameraStatus == true) {
+        capture_and_brocast();
+    } else {
+        stopCapture();
+    }
+}
+
 function sendchat_to_Server() {
     let message = document.getElementById("chat-input").value;
     if (message != '') {
@@ -107,6 +115,7 @@ function Init() {
     myVideo = document.createElement('video');
     myVideo.muted = true;
 
+    // socket.on('server-test', (message) => { console.log(message); });
     // ----------------------------------------
     /* somebody sent a message, receive it and show on the chatroom */
     socket.on('chatroom-refresh', (message) => {
@@ -127,51 +136,16 @@ function Init() {
         socket.emit('send-id', myid);
     });
 
-    // socket.on('server-test', (message) => { console.log(message); });
-
     // ----------------------------------------
     /* peer init when client open the page, will receive a peer-id */
     myPeer.on('open', (id) => {
         myid = id;
-        /* server need to know who still online */
         socket.emit('new-user-request', myid);
     });
 
-    /* printout p2p message when recrive */
-    /*myPeer.on("connection", (conn) => {
-        conn.on("data", (data) => {
-            console.log(data);
-        });
-    });*/
-
-    /* new client need to know all user id for p2p */
+    /* server give all user id: refresh user-id-list */
     socket.on('all-user-id', (id_arr) => {
-        /* acquire all user id */
-        userid_arr = [...id_arr];
-        // console.log('all user expect self: ', userid_arr);
-        // 未連接網路，準備連接網路中所有的user
-        /*
-        userid_arr.map( (id) => {
-            let conn = myPeer.connect(id);
-            conn.on("open", () => {
-                conn.send(`hi! I am your kouhai: ${myname}`);
-            });
-        });
-        */
-    });
-
-    /* new client added, receive its id */
-    socket.on('new-user-id', (userid) => {
-        if (myid != userid) {
-            /* add new client id to user-id-list */
-            userid_arr = [userid, ...userid_arr];
-            // 已經連接網路，準備連接新進來的user
-            // console.log('new user: ', id);
-            /*let conn = myPeer.connect(userid);
-            conn.on("open", () => {
-                conn.send(`hi! I am your senpai: ${myname}`);
-            });*/
-        }
+        userid_arr = id_arr;
     });
 
     // ----------------------------------------
