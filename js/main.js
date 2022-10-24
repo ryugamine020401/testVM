@@ -71,12 +71,19 @@ function brocastStreaming(stream) {
 /* p2p receive video:
    receive stream pakage and control <video> obj in DOM if somebody stop/start streaming */
 function listenStreaming() {
+    let video_arr = [];
+    let muteState = true;
+    let mute_btn = document.getElementById("mute-toggle");
     myPeer.on('call', (call) => {
         call.answer(null);
         let video = document.createElement('video');
-        video.muted = true;
+        video.muted = muteState;
         call.on('stream', (remoteStream) => {
-            add_newVideo(video, remoteStream);
+            if (remoteStream) {
+                add_newVideo(video, remoteStream);
+                mute_btn.removeAttribute("disabled");
+                video_arr = [video, ...video_arr];
+            }
         });
         socket.on('close-video', (userid) => {
             if (call.peer == userid){
@@ -90,6 +97,15 @@ function listenStreaming() {
             video.remove();
         });*/
     });
+    mute_btn.onclick = function () {
+        video_arr.map( (video) => {
+            if (video) {
+                muteState = false;
+                video.muted = false;
+                document.getElementById("mute-toggle").setAttribute("disabled","disabled");
+            }
+        });
+    }
 }
 
 /* ###################################################################### */
@@ -124,7 +140,9 @@ function Init() {
     /* input name and show */
     myname = window.prompt('輸入名字', 'USER') || 'USER';
     document.getElementById("username").innerText = myname;
+    alert('視訊聲音必須手動開啟');
     /* add event in DOM */
+    document.getElementById("mute-toggle").setAttribute("disabled","disabled");
     document.getElementById("chat-send").addEventListener('click', sendchat_to_Server);
     document.getElementById("camera-toggle").addEventListener('click', toggleCamera);
     /* we dont want to listen voice from ourself */
