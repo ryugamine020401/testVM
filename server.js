@@ -111,8 +111,11 @@ server_io.on('connection', (socket) => {
 
     // ----------------------------------------
     /* somebody left the room or stop capture */
-    socket.on('stop-stream', (userid) => {
+    socket.on('stop-videoStream', (userid) => {
         server_io.emit('close-video', userid);
+    });
+    socket.on('stop-audioStream', (userid) => {
+        server_io.emit('close-audio', userid);
     });
 
     /* somebody send a message in chatroom */
