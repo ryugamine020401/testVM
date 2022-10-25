@@ -1,10 +1,9 @@
 /* ###################################################################### */
-const PEER_PORT = '3000';
-
 let socket;
 let myPeer = new Peer(undefined, {
     host: '/',
-    port: PEER_PORT
+    port: '3000',
+    path: '/'
 });
 
 let myname;
@@ -14,22 +13,28 @@ let username_arr = [];
 
 let cameraStatus = false;
 // let micStatus = false;
+let firstVoice = false;
+let mutedState = true; 
+let video_arr = [];
+
 
 let localStream = null;
 let videoBox = document.getElementById("videoBox");
+let myVideoBox = document.createElement('span');
 let myVideo = document.createElement('video');
 let myVideoName = document.createElement('span');
 
 /* ###################################################################### */
 /* creat <video> tag in DOM */
-function add_newVideo(video, span, stream, username) {
-    span.innerHTML = username;
+function add_newVideo(span, video, span2, stream, username) {
+    span2.innerHTML = username;
     video.srcObject = stream;
     video.addEventListener('loadedmetadata', () => {
         video.play();
     });
+    span.append(video);
+    span.append(span2);
     videoBox.append(span);
-    videoBox.append(video);
 }
 
 /* close local media device and remove <video> tag in DOM */
@@ -41,6 +46,7 @@ function stopCapture() {
         myVideo.srcObject = null;
         myVideo.remove();
         myVideoName.remove();
+        myVideoBox.remove();
         localStream = null;
     }
 }
@@ -53,7 +59,7 @@ function capture_and_brocast() {
     })
     .then( (stream) => {
         localStream = stream;
-        add_newVideo(myVideo, myVideoName, stream, 'YOU');
+        add_newVideo(myVideoBox, myVideo, myVideoName, stream, 'YOU');
         brocastStreaming(stream);
     })
     .catch( (error) => {
@@ -67,7 +73,6 @@ function capture_and_brocast() {
 function brocastStreaming(stream) {
     userid_arr.map( (userid) => {
         if (userid != myid) {
-            // console.log('連線後再傳');
             let call = myPeer.call(userid, stream);
         }
     });
@@ -76,19 +81,16 @@ function brocastStreaming(stream) {
 /* p2p receive video:
    receive stream pakage and control <video> obj in DOM if somebody stop/start streaming */
 function listenStreaming() {
-    let video_arr = [];
-    let muteState = true;
-    let mute_btn = document.getElementById("mute-toggle");
     myPeer.on('call', (call) => {
         call.answer(null);
-        let video = document.createElement('video');
         let span = document.createElement('span');
-        video.muted = muteState;
+        let video = document.createElement('video');
+        let span2 = document.createElement('span');
+        video.muted = mutedState;
         call.on('stream', (remoteStream) => {
             if (remoteStream) {
                 let username = username_arr[userid_arr.indexOf(call.peer)];
-                add_newVideo(video, span, remoteStream, username);
-                mute_btn.removeAttribute("disabled");
+                add_newVideo(span, video, span2, remoteStream, username);
                 video_arr = [video, ...video_arr];
             }
         });
@@ -96,24 +98,11 @@ function listenStreaming() {
             if (call.peer == userid) {
                 video.srcObject = null;
                 video.remove();
+                span2.remove();
                 span.remove();
             }
         });
-        /*call.on('close', () => {
-            console.log('remove video');
-            video.srcObject = null;
-            video.remove();
-        });*/
     });
-    mute_btn.onclick = function () {
-        video_arr.map( (video) => {
-            if (video) {
-                muteState = false;
-                video.muted = false;
-                document.getElementById("mute-toggle").setAttribute("disabled","disabled");
-            }
-        });
-    }
 }
 
 /* ###################################################################### */
@@ -143,20 +132,36 @@ function sendchat_to_Server() {
 /* ###################################################################### */
 function Init() {
     // ----------------------------------------
-    /* connect to server */
-    socket = io.connect();
-    /* input name and show */
-    myname = window.prompt('輸入名字', 'USER') || 'USER';
-    document.getElementById("username").innerText = myname;
-    alert('視訊聲音必須手動開啟');
     /* add event in DOM */
-    document.getElementById("mute-toggle").setAttribute("disabled","disabled");
+    myname = prompt('輸入名字', 'USER') || 'USER';
+    document.getElementById("username").innerText = myname;
     document.getElementById("chat-send").addEventListener('click', sendchat_to_Server);
     document.getElementById("camera-toggle").addEventListener('click', toggleCamera);
     /* we dont want to listen voice from ourself */
     myVideo.muted = true;
+    /* bind video sounds to checkbox */
+    let muted_toggle = document.getElementById("muted-toggle");
+    muted_toggle.addEventListener('click', () => {
+        if (muted_toggle.checked == false) {
+            mutedState = true;
+        } else {
+            if (firstVoice == false) {
+                let audio = document.createElement("audio");
+                audio.src = "sound/join.mp3";
+                audio.play();
+                firstVoice = true;
+            }
+            mutedState = false;
+        }
+        video_arr.map( (video) => {
+            video.muted = mutedState;
+        });
+    });
 
     // ----------------------------------------
+    /* connect to server */
+    socket = io.connect();
+
     /* somebody sent a message, receive it and show on the chatroom */
     socket.on('chatroom-refresh', (message) => {
         document.getElementById("chatroom").innerHTML += `<div>
@@ -187,7 +192,6 @@ function Init() {
     socket.on('all-user-id', (id_arr, name_arr) => {
         userid_arr = id_arr;
         username_arr = name_arr;
-        console.log(username_arr);
     });
 
     /* p2p send video:
@@ -195,10 +199,9 @@ function Init() {
     show the username on chatroom when somebody join the toom. */
     socket.on('new-user-id', (userid, username) => {
         if (userid != myid) {
-            // console.log('中途加入');
             let call = myPeer.call(userid, localStream);
         }
-        username = (username == myname)? '您': username;
+        username = (userid == myid)? '您': username;
         document.getElementById("chatroom").innerHTML += `<div>
             <span>* ${username} 已加入 *</span>
         </div>`;
@@ -213,7 +216,7 @@ function Init() {
 
     // ----------------------------------------
 }
-
 /* ###################################################################### */
+
 Init();
 listenStreaming();

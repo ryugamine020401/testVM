@@ -11,6 +11,7 @@ let userid_arr = []; // user-id-list
 let username_arr = [];
 let temp_arr = [];
 let temp_arr2 = [];
+// let message_history = []; 
 
 /* ###################################################################### */
 let server = http.createServer((request, response) => {
@@ -25,7 +26,7 @@ let server = http.createServer((request, response) => {
             break;
         case '/index.html':
         case '/js/main.js':
-            fs.readFile(__dirname + path, (error, data) => {
+            fs.readFile(__dirname + '/public' + path, (error, data) => {
                 if (error) {
                     response.writeHead(404);
                     response.write("page dose not exist - 404");
@@ -35,6 +36,17 @@ let server = http.createServer((request, response) => {
                 }
                 response.end();
             })
+            break;
+        case '/sound/join.mp3':
+            try {
+                let mp3 = fs.readFileSync(__dirname + '/public' + path);
+                response.writeHead(200, {'Content-Type': 'audio/mpeg'});
+                response.write(mp3);
+            } catch {
+                response.writeHead(404);
+                response.write("page dose not exist - 404");
+            }
+            response.end();
             break;
         default:
             response.writeHead(404);
@@ -50,10 +62,6 @@ let server_io = require('socket.io')(server);
 
 server_io.on('connection', (socket) => {
     // ----------------------------------------
-    member += 1;
-    /* give all user number of people who still online */
-    server_io.emit('member-refresh', member);
-
     /* when somebody disconnect */
     socket.on('disconnect', () => {
         member -= 1;
@@ -69,6 +77,10 @@ server_io.on('connection', (socket) => {
 
     /* new client want to add into p2p network */
     socket.on('new-user-request', (userid, username) => {
+        member += 1;
+        /* give all user number of people who still online */
+        server_io.emit('member-refresh', member);
+        /* add new client info to arr */
         userid_arr = [userid, ...userid_arr];
         username_arr = [username, ...username_arr];
         server_io.emit('new-user-id', userid, username);
@@ -107,6 +119,7 @@ server_io.on('connection', (socket) => {
     socket.on('new-chat-message', (message) => {
         /* give all user the message and who gives */
         server_io.emit('chatroom-refresh', message);
+        // message_history = [...chat_history, message];
     });
 
     // ----------------------------------------
