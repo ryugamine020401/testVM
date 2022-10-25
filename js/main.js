@@ -10,21 +10,25 @@ let myPeer = new Peer(undefined, {
 let myname;
 let myid;
 let userid_arr = [];
+let username_arr = [];
 
 let cameraStatus = false;
 // let micStatus = false;
 
-let localStream;
+let localStream = null;
 let videoBox = document.getElementById("videoBox");
 let myVideo = document.createElement('video');
+let myVideoName = document.createElement('span');
 
 /* ###################################################################### */
 /* creat <video> tag in DOM */
-function add_newVideo(video, stream) {
+function add_newVideo(video, span, stream, username) {
+    span.innerHTML = username;
     video.srcObject = stream;
     video.addEventListener('loadedmetadata', () => {
         video.play();
     });
+    videoBox.append(span);
     videoBox.append(video);
 }
 
@@ -36,6 +40,7 @@ function stopCapture() {
         /* release source */
         myVideo.srcObject = null;
         myVideo.remove();
+        myVideoName.remove();
         localStream = null;
     }
 }
@@ -48,7 +53,7 @@ function capture_and_brocast() {
     })
     .then( (stream) => {
         localStream = stream;
-        add_newVideo(myVideo, stream);
+        add_newVideo(myVideo, myVideoName, stream, 'YOU');
         brocastStreaming(stream);
     })
     .catch( (error) => {
@@ -77,18 +82,21 @@ function listenStreaming() {
     myPeer.on('call', (call) => {
         call.answer(null);
         let video = document.createElement('video');
+        let span = document.createElement('span');
         video.muted = muteState;
         call.on('stream', (remoteStream) => {
             if (remoteStream) {
-                add_newVideo(video, remoteStream);
+                let username = username_arr[userid_arr.indexOf(call.peer)];
+                add_newVideo(video, span, remoteStream, username);
                 mute_btn.removeAttribute("disabled");
                 video_arr = [video, ...video_arr];
             }
         });
         socket.on('close-video', (userid) => {
-            if (call.peer == userid){
+            if (call.peer == userid) {
                 video.srcObject = null;
                 video.remove();
+                span.remove();
             }
         });
         /*call.on('close', () => {
@@ -165,28 +173,42 @@ function Init() {
 
     /* just do it */
     socket.on('send-your-id', () => {
-        socket.emit('send-id', myid);
+        socket.emit('send-id', myid, myname);
     });
 
     // ----------------------------------------
     /* peer init when client open the page, will receive a peer-id */
     myPeer.on('open', (id) => {
         myid = id;
-        socket.emit('new-user-request', myid);
+        socket.emit('new-user-request', myid, myname);
     });
 
     /* server give all user id: refresh user-id-list */
-    socket.on('all-user-id', (id_arr) => {
+    socket.on('all-user-id', (id_arr, name_arr) => {
         userid_arr = id_arr;
+        username_arr = name_arr;
+        console.log(username_arr);
     });
 
     /* p2p send video:
-       when new client join the room, also send stream pakage */
-    socket.on('new-user-id', (userid) => {
+       when new client join the room, also send stream pakage.
+    show the username on chatroom when somebody join the toom. */
+    socket.on('new-user-id', (userid, username) => {
         if (userid != myid) {
             // console.log('中途加入');
             let call = myPeer.call(userid, localStream);
         }
+        username = (username == myname)? '您': username;
+        document.getElementById("chatroom").innerHTML += `<div>
+            <span>* ${username} 已加入 *</span>
+        </div>`;
+    });
+
+    /* show the username on chatroom when somebody left the toom */
+    socket.on('someone-left', (username) => {
+        document.getElementById("chatroom").innerHTML += `<div>
+            <span>* ${username} 已離開 *</span>
+        </div>`;
     });
 
     // ----------------------------------------
