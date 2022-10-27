@@ -6,12 +6,11 @@ const PORT = 3001;
 let http = require('http');
 let url = require('url');
 let fs = require('fs');
-let member = 0; // number of people online
-let userid_arr = []; // user-id-list
+
+let userid_arr = [];
 let username_arr = [];
 let temp_arr = [];
 let temp_arr2 = [];
-// let message_history = []; 
 
 /* ###################################################################### */
 let server = http.createServer((request, response) => {
@@ -61,12 +60,8 @@ server.listen(PORT, HOST);
 let server_io = require('socket.io')(server);
 
 server_io.on('connection', (socket) => {
-    // ----------------------------------------
     /* when somebody disconnect */
     socket.on('disconnect', () => {
-        member -= 1;
-        /* give all user number of people who still online */
-        server_io.emit('member-refresh', member);
         /* let all user give their id again for refresh user-id-list */
         temp_arr = [...userid_arr];
         temp_arr2 = [...username_arr];
@@ -77,9 +72,6 @@ server_io.on('connection', (socket) => {
 
     /* new client want to add into p2p network */
     socket.on('new-user-request', (userid, username) => {
-        member += 1;
-        /* give all user number of people who still online */
-        server_io.emit('member-refresh', member);
         /* add new client info to arr */
         userid_arr = [userid, ...userid_arr];
         username_arr = [username, ...username_arr];
@@ -109,7 +101,7 @@ server_io.on('connection', (socket) => {
         }
     });
 
-    // ----------------------------------------
+    /* ---------------------------------------- */
     /* somebody left the room or stop capture */
     socket.on('stop-videoStream', (userid) => {
         server_io.emit('close-video', userid);
@@ -117,15 +109,17 @@ server_io.on('connection', (socket) => {
     socket.on('stop-audioStream', (userid) => {
         server_io.emit('close-audio', userid);
     });
+    socket.on('stop-screenStream', (userid) => {
+        server_io.emit('close-screen', userid);
+    });
 
     /* somebody send a message in chatroom */
     socket.on('new-chat-message', (message) => {
         /* give all user the message and who gives */
         server_io.emit('chatroom-refresh', message);
-        // message_history = [...chat_history, message];
     });
 
-    // ----------------------------------------
+    /* ---------------------------------------- */
 });
 
 /* ###################################################################### */
