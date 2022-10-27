@@ -13,10 +13,10 @@ let username_arr = [];
 
 let cameraStatus = false;
 let micStatus = false;
-let firstVoice = false;
-let mutedState = true; 
-let video_arr = [];
-let audio_arr = [];
+let firstVoice = false;  // for autoplay audio
+let mutedState = true;  // for autoplay screen
+let video_arr = [];  // for mute viode
+let audio_arr = []; // for mute audio
 
 let myVideoStream = null;
 let videoBox = document.getElementById("videoBox");
@@ -41,6 +41,7 @@ function add_newVideo(span, video, videoStream, span2, username) {
     span.append(span2);
     videoBox.append(span);
 }
+/* creat <audio> tag in DOM */
 function add_newAudio(span, audio, audioStream, span2, username) {
     span2.innerHTML = username;
     audio.srcObject = audioStream;
@@ -62,7 +63,7 @@ function add_newAudio(span, audio, audioStream, span2, username) {
     audioBox.append(span);
 }
 
-/* close local media device and remove <video> tag in DOM */
+/* close local camera and remove <video> tag in DOM */
 function stopCaptureVideo() {
     if (myVideoStream) {
         /* stop fetch media */
@@ -75,6 +76,7 @@ function stopCaptureVideo() {
         myVideoStream = null;
     }
 }
+/* close local mic and remove <audio> tag in DOM */
 function stopCaptureAudio() {
     if (myAudioStream) {
         /* stop fetch media */
@@ -88,7 +90,7 @@ function stopCaptureAudio() {
     }
 }
 
-/* open local media device and do streaming to other client */
+/* open local camera and stream to other client */
 async function captureVideo() {
     myVideoStream = await navigator.mediaDevices.getUserMedia({
         audio: false,
@@ -98,6 +100,7 @@ async function captureVideo() {
     add_newVideo(myVideoBox, myVideo, myVideoStream, myVideoName, '您的相機/ ');
     brocastStreaming(myVideoStream);
 }
+/* open local mic and stream to other client */
 async function captureAudio() {
     myAudioStream = await navigator.mediaDevices.getUserMedia({
         audio: true,
@@ -108,8 +111,8 @@ async function captureAudio() {
 }
 
 /* ###################################################################### */
-/* p2p send video:
-   send stream pakage to client which is in list */
+/* p2p send stream:
+   send stream pakage to client which is in the list */
 function brocastStreaming(stream) {
     userid_arr.map( (userid) => {
         if (userid != myid) {
@@ -118,8 +121,8 @@ function brocastStreaming(stream) {
     });
 }
 
-/* p2p receive video:
-   receive stream pakage and control <video> obj in DOM if somebody stop/start streaming */
+/* p2p receive stream:
+   receive stream pakage and control <video>/<audio> obj in DOM if somebody start/stop a stream */
 function listenStreaming() {
     myPeer.on('call', (call) => {
         call.answer(null);
@@ -181,7 +184,8 @@ function toggleCamera() {
         socket.emit('stop-videoStream', myid);
     }
 }
-
+/* button onclick event:
+   open or close mic and control streaming... */
 function toggleMic() {
     micStatus = (micStatus == true)? false: true;
     document.getElementById("mic-toggle").innerText = (micStatus == true)? "關閉麥克風": "開啟麥克風";
@@ -194,7 +198,7 @@ function toggleMic() {
 }
 
 /* button onclick event:
-   send message to chatroom */
+   send a message to chatroom */
 function sendchat_to_Server() {
     let message = document.getElementById("chat-input").value;
     if (message != '') {
@@ -216,7 +220,7 @@ function Init() {
     /* we dont want to listen voice from ourself */
     myVideo.muted = true;
     myAudio.muted = true;
-    /* bind audio sounds to checkbox */
+    /* bind audio sounds ctrl to checkbox */
     let muted_toggle = document.getElementById("muted-toggle");
     muted_toggle.addEventListener('click', () => {
         if (muted_toggle.checked == false) {
@@ -271,9 +275,9 @@ function Init() {
         username_arr = name_arr;
     });
 
-    /* p2p send video:
+    /* p2p send stream:
        when new client join the room, also send stream pakage.
-    show the username on chatroom when somebody join the toom. */
+    show the username on chatroom when somebody join the room. */
     socket.on('new-user-id', (userid, username) => {
         if (userid != myid) {
             if (myVideoStream) myPeer.call(userid, myVideoStream);
@@ -285,7 +289,7 @@ function Init() {
         </div>`;
     });
 
-    /* show the username on chatroom when somebody left the toom */
+    /* show the username on chatroom when somebody left the room */
     socket.on('someone-left', (username) => {
         document.getElementById("chatroom").innerHTML += `<div>
             <span>* ${username} 已離開 *</span>
