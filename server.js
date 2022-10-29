@@ -1,9 +1,9 @@
 /* ###################################################################### */
 //const HOST = '192.168.43.6';
 const HOST = '10.2.0.4';
-const PORT = 80;
+const PORT = 443;
 
-let http = require('http');
+let https = require('https');
 let url = require('url');
 let fs = require('fs');
 
@@ -11,9 +11,13 @@ let userid_arr = [];
 let username_arr = [];
 let temp_arr = [];
 let temp_arr2 = [];
-
+let option = {
+    ca: fs.readFileSync('/public/etc/ssl/ca_bundle.crt'),
+    cert: fs.readFileSync('/public/etc/ssl/certificate.crt'),
+    key: fs.readFileSync('/public/etc/ssl/private/private.key')
+}
 /* ###################################################################### */
-let server = http.createServer((request, response) => {
+let server = https.createServer(option, (request, response) => {
     console.log('connection');
     let path = url.parse(request.url).pathname;
     switch (path) {
