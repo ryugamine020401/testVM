@@ -12,9 +12,9 @@ let username_arr = [];
 let temp_arr = [];
 let temp_arr2 = [];
 let option = {
-    ca: fs.readFileSync('/public/etc/ssl/ca_bundle.crt'),
-    cert: fs.readFileSync('/public/etc/ssl/certificate.crt'),
-    key: fs.readFileSync('/public/etc/ssl/private/private.key')
+    ca: fs.readFileSync('./public/etc/ssl/ca_bundle.crt'),
+    cert: fs.readFileSync('./public/etc/ssl/certificate.crt'),
+    key: fs.readFileSync('./public/etc/ssl/private/private.key')
 }
 /* ###################################################################### */
 let server = https.createServer(option, (request, response) => {
