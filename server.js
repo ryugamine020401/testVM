@@ -24,7 +24,7 @@ let server = http.createServer((request, response) => {
             response.end();
             break;
         case '/index.html':
-        case './.well-known/pki-validation/00E90260E02842CE03D51397ECB3712F.txt':
+        case '/.well-known/pki-validation/00E90260E02842CE03D51397ECB3712F.txt':
         case '/js/main.js':
             fs.readFile(__dirname + '/public' + path, (error, data) => {
                 if (error) {
