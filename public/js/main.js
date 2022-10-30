@@ -2,7 +2,7 @@
 let socket;
 let myPeer = new Peer(undefined, {
     host: '/',
-    secure: false,
+    secure: true,
     port: 3000,
     path: '/'
 });
