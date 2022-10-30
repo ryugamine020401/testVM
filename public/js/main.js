@@ -1,10 +1,8 @@
 /* ###################################################################### */
+const PORT = '3000';
+
 let socket;
-let myPeer = new Peer(undefined, {
-    host: '/',
-    port: '3000',
-    path: '/'
-});
+let myPeer;
 
 /* ---------------------------------------- */
 let myname;
@@ -283,8 +281,24 @@ function Init() {
 
     /* ---------------------------------------- */
     /* connect to server */
+    let option;
     socket = io.connect();
+    
 
+    socket.on('option', (argu) => {
+        option = argu;
+        console.log(option);
+    });
+
+    myPeer = new Peer(undefined, {
+        host: '/',
+        port: PORT,
+        ssl: option,
+        path: '/'
+    });
+
+    console.log('myPeer = ', myPeer);
+    /* ---------------------------------------- */
     /* somebody sent a message, receive it and show on the chatroom */
     socket.on('chatroom-refresh', (message) => {
         document.getElementById("chatroom").innerHTML += `<div>
@@ -341,3 +355,10 @@ function Init() {
 /* ###################################################################### */
 Init();
 listenStreaming();
+
+
+
+
+
+
+
