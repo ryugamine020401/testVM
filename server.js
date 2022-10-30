@@ -2,25 +2,33 @@
 //const HOST = '192.168.43.6';
 const HOST = '10.2.0.4';
 const PORT = 443;
+const peerPORT = 3000;
 
 let https = require('https');
 let url = require('url');
 let fs = require('fs');
+let {PeerServer} = require('peer');
 
+/* ---------------------------------------- */
+let option = {
+    ca: fs.readFileSync(__dirname + '/public/etc/ssl/ca_bundle.crt'),
+    cert: fs.readFileSync(__dirname + '/public/etc/ssl/certificate.crt'),
+    key: fs.readFileSync(__dirname + '/public/etc/private/private.key')
+};
+let myPeerServer = PeerServer({ 
+    ssl: option,
+    port: peerPORT, 
+    path: '/'
+});
+
+/* ---------------------------------------- */
 let userid_arr = [];
 let username_arr = [];
 let temp_arr = [];
 let temp_arr2 = [];
 
-let option = {
-    ca: fs.readFileSync('./public/etc/ssl/ca_bundle.crt'),
-    cert: fs.readFileSync('./public/etc/ssl/certificate.crt'),
-    key: fs.readFileSync('./public/etc/ssl/private/private.key')
-}
-
 /* ###################################################################### */
 let server = https.createServer(option, (request, response) => {
-    console.log('connection');
     let path = url.parse(request.url).pathname;
     switch (path) {
         case '/':
@@ -30,7 +38,6 @@ let server = https.createServer(option, (request, response) => {
             response.end();
             break;
         case '/index.html':
-        case '/.well-known/pki-validation/00E90260E02842CE03D51397ECB3712F.txt':
         case '/js/main.js':
             fs.readFile(__dirname + '/public' + path, (error, data) => {
                 if (error) {
@@ -63,11 +70,9 @@ let server = https.createServer(option, (request, response) => {
 });
 
 /* ###################################################################### */
-server.listen(PORT, HOST);
 let server_io = require('socket.io')(server);
 
 server_io.on('connection', (socket) => {
-    socket.emit('option', option);
     /* when somebody disconnect */
     socket.on('disconnect', () => {
         /* let all user give their id again for refresh user-id-list */
@@ -131,6 +136,9 @@ server_io.on('connection', (socket) => {
 });
 
 /* ###################################################################### */
+myPeerServer.listen();
+server.listen(PORT, HOST);
+console.log('start');
 
 
 
