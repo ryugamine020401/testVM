@@ -1,20 +1,33 @@
 /* ###################################################################### */
-//const HOST = '192.168.43.6';
 const HOST = '127.0.0.1';
 const PORT = 3001;
+const peerPORT = 3000;
 
-let http = require('http');
+let https = require('http');
 let url = require('url');
 let fs = require('fs');
+let {PeerServer} = require('peer');
 
+/* ---------------------------------------- */
+let option = {
+    ca: fs.readFileSync(__dirname + '/public/etc/ssl/ca_bundle.crt'),
+    cert: fs.readFileSync(__dirname + '/public/etc/ssl/certificate.crt'),
+    key: fs.readFileSync(__dirname + '/public/etc/private/private.key')
+};
+let myPeerServer = PeerServer({ 
+    // ssl: option,
+    port: peerPORT, 
+    path: '/'
+});
+
+/* ---------------------------------------- */
 let userid_arr = [];
 let username_arr = [];
 let temp_arr = [];
 let temp_arr2 = [];
 
 /* ###################################################################### */
-let server = http.createServer((request, response) => {
-    console.log('connection');
+let server = https.createServer((request, response) => {
     let path = url.parse(request.url).pathname;
     switch (path) {
         case '/':
@@ -56,7 +69,6 @@ let server = http.createServer((request, response) => {
 });
 
 /* ###################################################################### */
-server.listen(PORT, HOST);
 let server_io = require('socket.io')(server);
 
 server_io.on('connection', (socket) => {
@@ -123,3 +135,6 @@ server_io.on('connection', (socket) => {
 });
 
 /* ###################################################################### */
+myPeerServer.listen();
+server.listen(PORT, HOST);
+console.log('start');

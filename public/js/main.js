@@ -2,7 +2,8 @@
 let socket;
 let myPeer = new Peer(undefined, {
     host: '/',
-    port: '3000',
+    secure: false,
+    port: 3000,
     path: '/'
 });
 
@@ -17,7 +18,7 @@ let micStatus = false;
 let screenStatus = false;
 let firstVoice = false;  // for autoplay
 let mutedState = true;  // for autoplay
-let video_arr = [];  // for mute viode
+let video_arr = [];  // for mute video
 let audio_arr = []; // for mute audio
 
 /* ---------------------------------------- */
