@@ -1,4 +1,7 @@
 /* ###################################################################### */
+const PPI_CAM = {width: 192, height: 108};
+const PPI_SCREEN = {MediaSource: 'screen', width: 1920, height: 1080};
+
 let socket;
 let myPeer = new Peer(undefined, {
     host: '/',
@@ -23,17 +26,15 @@ let audio_arr = []; // for mute audio
 
 /* ---------------------------------------- */
 let myVideoStream = null;
-let myVideoBox = document.createElement('span');
+let myVideoBox = document.createElement('div');
 let myVideo = document.createElement('video');
-let myVideoName = document.createElement('span');
+let myVideoName = document.createElement('div');
 let myAudioStream = null;
-let myAudioBox = document.createElement('span');
 let myAudio = document.createElement('audio');
-let myAudioName = document.createElement('span');
 let myScreenStream = null;
-let myScreenBox = document.createElement('span');
+let myScreenBox = document.createElement('div');
 let myScreen = document.createElement('video');
-let myScreenName = document.createElement('span');
+let myScreenName = document.createElement('div');
 
 /* ###################################################################### */
 /* p2p send stream:
@@ -51,10 +52,10 @@ function brocastStreaming(stream) {
 function listenStreaming() {
     myPeer.on('call', (call) => {
         call.answer(null);
-        let span = document.createElement('span');
+        let container = document.createElement('div');
         let video = document.createElement('video');
         let audio = document.createElement('audio');
-        let span2 = document.createElement('span');
+        let videoName = document.createElement('div');
         video.muted = mutedState;
         audio.muted = mutedState;
         /* ---------------------------------------- */
@@ -68,10 +69,10 @@ function listenStreaming() {
                     type = remoteStream.getTracks()[0]['kind'];
                 }
                 if (type == 'video') {
-                    add_newVideo(span, video, remoteStream, span2, username+'/ ');
+                    add_newVideo(container, video, remoteStream, videoName, username, call.peer);
                     video_arr = [video, ...video_arr];
                 } else if (type == 'audio') {
-                    add_newAudio(span, audio, remoteStream, span2, username+'的聲音/ ');
+                    add_newAudio(audio, remoteStream, call.peer);
                     audio_arr = [audio, ...audio_arr];
                 }
             } 
@@ -81,24 +82,26 @@ function listenStreaming() {
             if (call.peer == userid) {
                 video.srcObject = null;
                 video.remove();
-                span2.remove();
-                span.remove();
+                videoName.remove();
+                container.remove();
             }
         });
         socket.on('close-audio', (userid) => {
             if (call.peer == userid) {
                 audio.srcObject = null;
                 audio.remove();
-                span2.remove();
-                span.remove();
+                let audienceName = document.getElementById('audience-' + userid);
+                if (audienceName) {
+                    audienceName.innerText = audienceName.innerText.replace(' ...說話中', '');
+                }
             }
         });
         socket.on('close-screen', (userid) => {
             if (call.peer == userid) {
                 video.srcObject = null;
                 video.remove();
-                span2.remove();
-                span.remove();
+                videoName.remove();
+                container.remove();
             }
         });
     });
@@ -106,22 +109,24 @@ function listenStreaming() {
 
 /* ###################################################################### */
 /* creat <video> tag in DOM */
-function add_newVideo(span, video, videoStream, span2, tag) {
+function add_newVideo(container, video, videoStream, videoName, username, userid) {
     let videoBox = document.getElementById("videoBox");
-    span2.innerHTML = tag;
+    videoName.innerHTML = username;
     video.srcObject = videoStream;
     video.addEventListener('loadedmetadata', () => {
         video.play();
     });
-    span.append(video);
-    span.append(span2);
-    videoBox.append(span);
+    // video.id = 'video-' + userid;
+    videoName.className = 'videoName'
+    container.className = 'video-container';
+    container.append(video);
+    container.append(videoName);
+    videoBox.append(container);
 }
 
 /* creat <audio> tag in DOM */
-function add_newAudio(span, audio, audioStream, span2, tag) {
+function add_newAudio(audio, audioStream, userid) {
     let audioBox = document.getElementById("audioBox");
-    span2.innerHTML = tag;
     audio.srcObject = audioStream;
     audio.addEventListener('loadedmetadata', () => {
         if (firstVoice) {
@@ -136,9 +141,11 @@ function add_newAudio(span, audio, audioStream, span2, tag) {
             });
         }
     });
-    span.append(audio);
-    span.append(span2);
-    audioBox.append(span);
+    audioBox.append(audio);
+    let audienceName = document.getElementById('audience-' + userid);
+    if (audienceName) {
+        audienceName.innerText += ' ...說話中';
+    }
 }
 
 /* ###################################################################### */
@@ -148,10 +155,10 @@ async function toggleCamera() {
     if (cameraStatus == false) {
         myVideoStream = await navigator.mediaDevices.getUserMedia({
             audio: false,
-            video: {width: 200, height: 200}
+            video: PPI_CAM
         }).catch( (error) => {alert(error.message);} );
         if (myVideoStream) {
-            add_newVideo(myVideoBox, myVideo, myVideoStream, myVideoName, '您/ ');
+            add_newVideo(myVideoBox, myVideo, myVideoStream, myVideoName, '您', myid);
             brocastStreaming(myVideoStream);
             cameraStatus = true;
             document.getElementById("camera-toggle").innerText = "關閉相機";
@@ -182,7 +189,7 @@ async function toggleMic() {
             video: false
         }).catch( (error) => {alert(error.message);} );
         if (myAudioStream) {
-            add_newAudio(myAudioBox, myAudio, myAudioStream, myAudioName, '您的聲音/ ');
+            add_newAudio(myAudio, myAudioStream, myid);
             brocastStreaming(myAudioStream);
             micStatus = true;
             document.getElementById("mic-toggle").innerText = "關閉麥克風";
@@ -194,9 +201,11 @@ async function toggleMic() {
             /* release source */
             myAudio.srcObject = null;
             myAudio.remove();
-            myAudioName.remove();
-            myAudioBox.remove();
             myAudioStream = null;
+            let audienceName = document.getElementById('audience-' + myid);
+            if (audienceName) {
+                audienceName.innerText = audienceName.innerText.replace(' ...說話中', '');
+            }
         }
         socket.emit('stop-audioStream', myid);
         micStatus = false;
@@ -210,10 +219,10 @@ async function toggleScreen() {
     if (screenStatus == false) {
         myScreenStream = await navigator.mediaDevices.getDisplayMedia({
             audio: true,
-            video: {MediaSource: 'screen', width: 500, height: 500}
+            video: PPI_SCREEN
         }).catch( (error) => {console.log(error.message);} );
         if (myScreenStream) {
-            add_newVideo(myScreenBox, myScreen, myScreenStream, myScreenName, '您/ ');
+            add_newVideo(myScreenBox, myScreen, myScreenStream, myScreenName, '您');
             brocastStreaming(myScreenStream);
             screenStatus = true;
             document.getElementById("screen-toggle").innerText = "關閉畫面分享";

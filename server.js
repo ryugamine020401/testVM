@@ -109,6 +109,8 @@ server_io.on('connection', (socket) => {
                 /* send new info to every client */
                 server_io.emit('all-user-id', userid_arr, username_arr);
                 server_io.emit('close-video', temp_arr[0]);
+                server_io.emit('close-audio', temp_arr[0]);
+                server_io.emit('close-screen', temp_arr[0]);
                 server_io.emit('someone-left', temp_arr[0]);
                 temp_arr = [];
                 temp_arr2 = [];
