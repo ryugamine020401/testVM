@@ -13,7 +13,7 @@ let {PeerServer} = require('peer');
 let option = {
     ca: fs.readFileSync(__dirname + '/public/etc/ssl/ca_bundle.crt'),
     cert: fs.readFileSync(__dirname + '/public/etc/ssl/certificate.crt'),
-    key: fs.readFileSync(__dirname + '/public/etc/private/private.key')
+    key: fs.readFileSync(__dirname + '/public/etc/ssl/private/private.key')
 };
 let myPeerServer = PeerServer({ 
     ssl: option,
