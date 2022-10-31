@@ -295,6 +295,17 @@ function Init() {
         </div>`;
     });
 
+    /* load chatroom history */
+    socket.on('chat-history', (chat_history) => {
+        chat_history.map( (message) => {
+            document.getElementById("chatroom").innerHTML += `<div>
+                <span>${message.username}</span>
+                <span> : </span>
+                <span>${message.content}</span>
+            </div>`;
+        })
+    });
+
     /* just do it */
     socket.on('send-your-id', () => {
         socket.emit('send-id', myid, myname);
@@ -311,7 +322,16 @@ function Init() {
     socket.on('all-user-id', (id_arr, name_arr) => {
         userid_arr = id_arr;
         username_arr = name_arr;
-        document.getElementById("number-of-people").innerText = `線上人數 : ${userid_arr.length}`;
+        document.getElementById("number-of-audience").innerText = `成員 : ${userid_arr.length}`;
+        let audience = document.getElementById("audience");
+        userid_arr.map( (userid, i) => {
+            if (!document.getElementById('audience-' + userid)) {
+                let audienceName = document.createElement('div');
+                audienceName.id = 'audience-' + userid;
+                audienceName.innerText = (userid==myid)? username_arr[i]+'(您)': username_arr[i];
+                audience.append(audienceName);
+            }
+        });
     });
 
     /* p2p send stream:
@@ -323,17 +343,13 @@ function Init() {
             if (myAudioStream) myPeer.call(userid, myAudioStream);
             if (myScreenStream) myPeer.call(userid, myScreenStream);
         }
-        /*username = (userid == myid)? '您': username;
-        document.getElementById("chatroom").innerHTML += `<div>
-            <span>* ${username} 已加入 *</span>
-        </div>`;*/
     });
 
     /* show the username on chatroom when somebody left the room */
-    socket.on('someone-left', (username) => {
-        /*document.getElementById("chatroom").innerHTML += `<div>
-            <span>* ${username} 已離開 *</span>
-        </div>`;*/
+    socket.on('someone-left', (userid) => {
+        if (document.getElementById('audience-' + userid)) {
+            document.getElementById('audience-' + userid).remove();
+        }
     });
 
     /* ---------------------------------------- */
