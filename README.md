@@ -8,11 +8,10 @@
         npm install socket.io
         npm install peer
 
-        -run code
+        - run code
         node server.js
-        peerjs --port 3000
 
-        - Go to
+        - go to
         localhost:3001/index.html
 
 ### Auto Refresh
