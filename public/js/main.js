@@ -309,22 +309,33 @@ function socketInit() {
 
     /* somebody sent a message, receive it and show on the chatroom */
     socket.on('chatroom-refresh', (message) => {
-        document.getElementById("chatroom").innerHTML += `<div>
-            <span>${message.username}</span>
-            <span> : </span>
-            <span>${message.content}</span>
-        </div>`;
+        let room = document.getElementById("chatroom");
+        let name = document.createElement('span');
+        let content = document.createElement('span');
+        name.className = 'text-wrapper';
+        content.className = 'text-wrapper';
+        name.innerText = message.username + ' : ';
+        content.innerText = message.content.replaceAll('\n', ' ');
+        room.append(name);
+        room.append(content);
+        room.innerHTML += `<div style="height:5px"></div>`;
     });
 
     /* load chatroom history */
     socket.on('chat-history', (chat_history) => {
+        let room = document.getElementById("chatroom");
         chat_history.map( (message) => {
-            document.getElementById("chatroom").innerHTML += `<div>
-                <span>${message.username}</span>
-                <span> : </span>
-                <span>${message.content}</span>
-            </div>`;
-        })
+            let name = document.createElement('span');
+            let content = document.createElement('span');
+            name.className = 'text-wrapper';
+            content.className = 'text-wrapper';
+            name.innerText = message.username + ' : ';
+            content.innerText = message.content.replaceAll('\n', ' ');
+            room.append(name);
+            room.append(content);
+            room.innerHTML += `<div style="height:5px"></div>`;
+        });
+        room.scrollTop = room.scrollHeight;
     });
 
     /* ---------------------------------------- */
@@ -338,7 +349,7 @@ function socketInit() {
             if (!document.getElementById('audience-' + userid)) {
                 let audienceName = document.createElement('div');
                 audienceName.id = 'audience-' + userid;
-                audienceName.innerText = (userid==myid)? username_arr[i]+'(您)': username_arr[i];
+                audienceName.innerText = (userid==myid)? username_arr[i]+' (您)': username_arr[i];
                 audience.append(audienceName);
             }
         });
