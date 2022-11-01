@@ -259,10 +259,9 @@ async function toggleScreen() {
    send a message to chatroom */
 function sendchat_to_Server() {
     let message = document.getElementById("chat-input").value;
-    if (message != '') {
-        socket.emit('new-chat-message', {'username': myname, 'content': message});
-        document.getElementById("chat-input").value = '';
-    }
+    if (message.replaceAll(' ', '').replaceAll('\n', '') == '') return;
+    socket.emit('new-chat-message', {'username': myname, 'content': message});
+    document.getElementById("chat-input").value = '';
 }
 
 /* ###################################################################### */
@@ -274,7 +273,12 @@ function Init() {
     document.getElementById("camera-toggle").addEventListener('click', toggleCamera);
     document.getElementById("mic-toggle").addEventListener('click', toggleMic);
     document.getElementById("screen-toggle").addEventListener('click', toggleScreen);
-
+    document.getElementById('chat-input').addEventListener('keyup', (e) => {
+        if (e.code == "Enter" || e.code == "NumpadEnter") {
+            sendchat_to_Server();
+            document.getElementById('chat-input')[0].focus();
+        }
+    });
     /* we dont want to listen voice from ourself */
     myVideo.muted = true;
     myAudio.muted = true;
