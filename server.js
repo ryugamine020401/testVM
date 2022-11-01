@@ -23,9 +23,9 @@ let myPeerServer = PeerServer({
 /* ---------------------------------------- */
 let userid_arr = [];
 let username_arr = [];
-let temp_arr = [];
-let temp_arr2 = [];
+let socketid_arr = [];
 let chat_history = [];
+
 /* ###################################################################### */
 let server = https.createServer((request, response) => {
     let path = url.parse(request.url).pathname;
@@ -75,64 +75,45 @@ server_io.on('connection', (socket) => {
     /* when somebody disconnect */
     socket.on('disconnect', () => {
         /* clear chatroom if nobody online */
-        if (!userid_arr[1]) chat_history = [];
-        /* let all user give their id again for refresh user-id-list */
-        temp_arr = [...userid_arr];
-        temp_arr2 = [...username_arr];
-        userid_arr = [];
-        username_arr = [];
-        server_io.emit('send-your-id');
+        if (!socketid_arr[1]) chat_history = [];
+        /* find the left one from arr */
+        let index = socketid_arr.indexOf(socket.id);
+        let leaveid =  userid_arr[index];
+        /* remove the left one in arr */
+        socketid_arr.splice(index, 1);
+        userid_arr.splice(index, 1);
+        username_arr.splice(index, 1);
+        /* update clients data */
+        server_io.emit('all-user-id', userid_arr, username_arr);
+        server_io.emit('close-video', leaveid, 'leave');
+        server_io.emit('close-audio', leaveid);
+        server_io.emit('someone-left', leaveid);
     });
 
     /* new client want to add into p2p network */
     socket.on('new-user-request', (userid, username) => {
         /* add new client info to arr */
+        socketid_arr = [...socketid_arr, socket.id];
         userid_arr = [...userid_arr, userid];
         username_arr = [...username_arr, username];
+        /* update clients data */
         server_io.emit('new-user-id', userid, username);
         server_io.emit('all-user-id', userid_arr, username_arr);
         socket.emit('chat-history', chat_history);
     });
 
-    /* receive all user id (when somebody disconnect, need to see who still online) */
-    socket.on('send-id', (userid, username) => {
-        /* add id to user-id-list (in server) */
-        userid_arr = [...userid_arr, userid];
-        username_arr = [...username_arr, username];
-        /* somebody leave */
-        if (temp_arr != []) {
-            /* remove the client id who still online */
-            temp_arr.splice(temp_arr.indexOf(userid), 1);
-            temp_arr2.splice(temp_arr2.indexOf(username), 1);
-            /* the final one means the left one */
-            if (!temp_arr[1]) {
-                /* send new info to every client */
-                server_io.emit('all-user-id', userid_arr, username_arr);
-                server_io.emit('close-video', temp_arr[0], 'leave');
-                server_io.emit('close-audio', temp_arr[0]);
-                // server_io.emit('close-screen', temp_arr[0], 'leave');
-                server_io.emit('someone-left', temp_arr[0]);
-                temp_arr = [];
-                temp_arr2 = [];
-            }
-        }
-    });
-
     /* ---------------------------------------- */
-    /* somebody left the room or stop capture */
+    /* somebody stop capture */
     socket.on('stop-videoStream', (userid, streamId) => {
         server_io.emit('close-video', userid, streamId);
     });
     socket.on('stop-audioStream', (userid) => {
         server_io.emit('close-audio', userid);
     });
-    // socket.on('stop-screenStream', (userid, streamId) => {
-    //     server_io.emit('close-screen', userid, streamId);
-    // });
 
     /* somebody send a message in chatroom */
     socket.on('new-chat-message', (message) => {
-        /* give all user the message and who gives */
+        /* give all client the message */
         server_io.emit('chatroom-refresh', message);
         /* save chatroom history */
         chat_history = [...chat_history, message];
