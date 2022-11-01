@@ -12,8 +12,8 @@ let myPeer = new Peer(undefined, {
 const VIDEO_QUALITY = {
     audio: false,
     video: {
-        width: 768,
-        height: 432
+        width: 192, //768,
+        height: 108 //432
     }
 };
 
@@ -36,7 +36,8 @@ const SCREEN_QUALITY = {
     video: {
         MediaSource: 'screen', 
         width: 1920, 
-        height: 1080
+        height: 1080,
+        frameRate: { max: 60 }
     }
 };
 
@@ -69,20 +70,40 @@ let myScreenName = document.createElement('div');
 
 /* ###################################################################### */
 function video_arrange() {
+    let type = document.getElementById("video-layout").value;
     let video_count = document.querySelectorAll('video').length;
     let root = document.documentElement;
-    if (video_count <= 1) {
-        root.style.setProperty('--vh','580px');
-        root.style.setProperty('--vw','950px');
-        root.style.setProperty('--vhpa','95%');
-    } else if (video_count <= 4) {
-        root.style.setProperty('--vh','280px');
-        root.style.setProperty('--vw','495px');
-        root.style.setProperty('--vhpa','90%');
-    } else {
-        root.style.setProperty('--vh','220px');
-        root.style.setProperty('--vw','355px');
-        root.style.setProperty('--vhpa','90%');
+    switch (type) {
+        case 'auto':
+            if (video_count <= 1) {
+                root.style.setProperty('--vh','580px');
+                root.style.setProperty('--vw','950px');
+                root.style.setProperty('--vhpa','95%');
+            } else if (video_count <= 4) {
+                root.style.setProperty('--vh','280px');
+                root.style.setProperty('--vw','495px');
+                root.style.setProperty('--vhpa','90%');
+            } else {
+                root.style.setProperty('--vh','220px');
+                root.style.setProperty('--vw','355px');
+                root.style.setProperty('--vhpa','90%');
+            }
+            break;
+        case 'type1':
+            root.style.setProperty('--vh','580px');
+            root.style.setProperty('--vw','950px');
+            root.style.setProperty('--vhpa','95%');
+            break;
+        case 'type2':
+            root.style.setProperty('--vh','280px');
+            root.style.setProperty('--vw','495px');
+            root.style.setProperty('--vhpa','90%');
+            break;
+        case 'type3':
+            root.style.setProperty('--vh','220px');
+            root.style.setProperty('--vw','355px');
+            root.style.setProperty('--vhpa','90%');
+            break;
     }
 }
 
@@ -293,16 +314,18 @@ function Init() {
     /* add event in DOM */
     myname = prompt('請輸入名字', 'USER') || 'USER';
     document.getElementById("username").innerText = myname;
-    document.getElementById("chat-send").addEventListener('click', sendchat_to_Server);
     document.getElementById("camera-toggle").addEventListener('click', toggleCamera);
     document.getElementById("mic-toggle").addEventListener('click', toggleMic);
     document.getElementById("screen-toggle").addEventListener('click', toggleScreen);
+    document.getElementById("video-layout").addEventListener('change', video_arrange);
+    document.getElementById("chat-send").addEventListener('click', sendchat_to_Server);
     document.getElementById('chat-input').addEventListener('keyup', (e) => {
         if (e.code == "Enter" || e.code == "NumpadEnter") {
             sendchat_to_Server();
             document.getElementById('chat-input')[0].focus();
         }
     });
+    
     /* we dont want to listen voice from ourself */
     myVideo.muted = true;
     myAudio.muted = true;
