@@ -14,6 +14,7 @@
         :root {
             --vh: 580px;
             --vw: 880px;
+            --vhpa: 90%;
         }
         ::-webkit-scrollbar {
             display: none;
@@ -30,7 +31,7 @@
             color: #eeeeee; 
         }
         video {
-            height: 90%;
+            height: var(--vhpa);
             width: 100%;
         }
         /* ------------------------------ */
@@ -92,36 +93,56 @@
             order: 1;
             padding: 0px;
             border-width: 1px;
-            margin: 0px;
-            border-color: black;
-            border-style: solid;
-        }
-        #chatroom {
-            padding: 5px;
-            height: 90%;
-            order: 1;
-            overflow: auto;
-            padding: 2px;
-            border-width: 1px;
             margin: 2px;
             border-color: black;
             border-style: solid;
         }
+        #chatroom {
+            height: 90%;
+            order: 1;
+            overflow: auto;
+            padding: 5px;
+            border-width: 1px;
+            margin: 2px;
+            /* border-color: black;
+            border-style: solid; */
+        }
+        .text-wrapper {
+            word-break: break-all;
+            word-wrap: break-word;
+        }
         .chat_ctrl {
+            display: flex;
+            flex-direction: row;
             height: 10%;
             order: 2;
             padding: 0px;
             border-width: 1px;
             margin: 2px;
-            border-color: black;
-            border-style: solid;
+            /* border-color: black;
+            border-style: solid; */
         }
+        #chat-input {
+            flex: 9;
+            order: 1;
+            resize:none;
+            white-space: pre-wrap;
+            margin: 2px;
+            background-color: #202124;
+            color: #eeeeee;
+        }
+        #chat-send {
+            flex: 1;
+            order: 2;
+            margin: 2px;
+        }
+        /* ------------------------------ */
         .audienceArea {
             height: 35%;
             order: 2;
             padding: 0px;
             border-width: 1px;
-            margin: 0px;
+            margin: 2px;
             border-color: black;
             border-style: solid;
         }
@@ -131,8 +152,8 @@
             padding: 2px;
             border-width: 1px;
             margin: 2px;
-            border-color: black;
-            border-style: solid;
+            /* border-color: black;
+            border-style: solid; */
         }
         /* ------------------------------ */
     </style>
@@ -161,7 +182,7 @@
                 <h3>聊天室</h3>
                 <div id="chatroom"></div>
                 <div class="chat_ctrl">
-                    <input id="chat-input" placeholder="輸入訊息">
+                    <textarea id="chat-input" placeholder="輸入訊息"></textarea>
                     <button id="chat-send">送出</button>
                 </div>
             </div>
