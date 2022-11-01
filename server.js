@@ -108,9 +108,9 @@ server_io.on('connection', (socket) => {
             if (!temp_arr[1]) {
                 /* send new info to every client */
                 server_io.emit('all-user-id', userid_arr, username_arr);
-                server_io.emit('close-video', temp_arr[0]);
+                server_io.emit('close-video', temp_arr[0], 'leave');
                 server_io.emit('close-audio', temp_arr[0]);
-                server_io.emit('close-screen', temp_arr[0]);
+                // server_io.emit('close-screen', temp_arr[0], 'leave');
                 server_io.emit('someone-left', temp_arr[0]);
                 temp_arr = [];
                 temp_arr2 = [];
@@ -120,15 +120,15 @@ server_io.on('connection', (socket) => {
 
     /* ---------------------------------------- */
     /* somebody left the room or stop capture */
-    socket.on('stop-videoStream', (userid) => {
-        server_io.emit('close-video', userid);
+    socket.on('stop-videoStream', (userid, streamId) => {
+        server_io.emit('close-video', userid, streamId);
     });
     socket.on('stop-audioStream', (userid) => {
         server_io.emit('close-audio', userid);
     });
-    socket.on('stop-screenStream', (userid) => {
-        server_io.emit('close-screen', userid);
-    });
+    // socket.on('stop-screenStream', (userid, streamId) => {
+    //     server_io.emit('close-screen', userid, streamId);
+    // });
 
     /* somebody send a message in chatroom */
     socket.on('new-chat-message', (message) => {

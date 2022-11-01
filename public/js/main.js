@@ -84,23 +84,30 @@ function listenStreaming() {
                     type = remoteStream.getTracks()[0]['kind'];
                 }
                 if (type == 'video') {
-                    add_newVideo(container, video, remoteStream, videoName, username, call.peer);
+                    add_newVideo(container, video, remoteStream, videoName, username, remoteStream.id);
                     video_arr = [video, ...video_arr];
                     video_arrange();
                 } else if (type == 'audio') {
                     add_newAudio(audio, remoteStream, call.peer);
                     audio_arr = [audio, ...audio_arr];
                 }
-            } 
+            }
         });
         /* ---------------------------------------- */
-        socket.on('close-video', (userid) => {
-            if (call.peer == userid) {
-                video.srcObject = null;
-                video.remove();
-                videoName.remove();
-                container.remove();
-                video_arrange();
+        socket.on('close-video', (userid, streamId) => {
+            if (streamId != 'leave') {
+                if (document.getElementById('video-'+streamId)) {
+                    document.getElementById('video-'+streamId).remove();
+                    video_arrange();
+                }
+            } else {
+                if (call.peer == userid) {
+                    video.srcObject = null;
+                    video.remove();
+                    videoName.remove();
+                    container.remove();
+                    video_arrange();
+                }
             }
         });
         socket.on('close-audio', (userid) => {
@@ -113,30 +120,29 @@ function listenStreaming() {
                 }
             }
         });
-        socket.on('close-screen', (userid) => {
-            if (call.peer == userid) {
-                video.srcObject = null;
-                video.remove();
-                videoName.remove();
-                container.remove();
-                video_arrange();
+        /*socket.on('close-screen', (userid, streamId) => {
+            if (streamId != 'leave') {
+                if (document.getElementById('video-'+streamId)) {
+                    document.getElementById('video-'+streamId).remove();
+                    video_arrange();
+                }
             }
-        });
+        });*/
     });
 }
 
 /* ###################################################################### */
 /* creat <video> tag in DOM */
-function add_newVideo(container, video, videoStream, videoName, username, userid) {
+function add_newVideo(container, video, videoStream, videoName, username, streamId) {
     let videoBox = document.getElementById("videoBox");
     videoName.innerHTML = username;
     video.srcObject = videoStream;
     video.addEventListener('loadedmetadata', () => {
         video.play();
     });
-    // video.id = 'video-' + userid;
     videoName.className = 'videoName'
     container.className = 'video-container';
+    container.id = 'video-' + streamId;
     container.append(video);
     container.append(videoName);
     videoBox.append(container);
@@ -176,7 +182,7 @@ async function toggleCamera() {
             video: PPI_CAM
         }).catch( (error) => {alert(error.message);} );
         if (myVideoStream) {
-            add_newVideo(myVideoBox, myVideo, myVideoStream, myVideoName, '您', myid);
+            add_newVideo(myVideoBox, myVideo, myVideoStream, myVideoName, '您', myVideoStream.id);
             video_arrange();
             brocastStreaming(myVideoStream);
             cameraStatus = true;
@@ -191,10 +197,10 @@ async function toggleCamera() {
             myVideo.remove();
             myVideoName.remove();
             myVideoBox.remove();
-            myVideoStream = null;
             video_arrange();
+            socket.emit('stop-videoStream', myid, myVideoStream.id);
+            myVideoStream = null;
         }
-        socket.emit('stop-videoStream', myid);
         cameraStatus = false;
         document.getElementById("camera-toggle").innerText = "開啟相機";
     }
@@ -242,7 +248,7 @@ async function toggleScreen() {
             video: PPI_SCREEN
         }).catch( (error) => {console.log(error.message);} );
         if (myScreenStream) {
-            add_newVideo(myScreenBox, myScreen, myScreenStream, myScreenName, '您');
+            add_newVideo(myScreenBox, myScreen, myScreenStream, myScreenName, '您', myScreenStream.id);
             video_arrange();
             brocastStreaming(myScreenStream);
             screenStatus = true;
@@ -257,10 +263,10 @@ async function toggleScreen() {
             myScreen.remove();
             myScreenName.remove();
             myScreenBox.remove();
-            myScreenStream = null;
             video_arrange();
+            socket.emit('stop-videoStream', myid, myScreenStream.id);
+            myScreenStream = null;
         }
-        socket.emit('stop-screenStream', myid);
         screenStatus = false;
         document.getElementById("screen-toggle").innerText = "開啟畫面分享";
     }
