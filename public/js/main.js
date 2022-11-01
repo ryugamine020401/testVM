@@ -1,14 +1,44 @@
 /* ###################################################################### */
-const PPI_CAM = {width: 192, height: 108};
-const PPI_SCREEN = {MediaSource: 'screen', width: 1920, height: 1080};
-
 let socket;
+
 let myPeer = new Peer(undefined, {
     host: '/',
     secure: false,
     port: 3000,
     path: '/'
 });
+
+/* ---------------------------------------- */
+const VIDEO_QUALITY = {
+    audio: false,
+    video: {
+        width: 768,
+        height: 432
+    }
+};
+
+const AUDIO_QUALITY = {
+    audio: true,
+    video: false
+};
+
+const SCREEN_QUALITY = {
+    audio: {
+        autoGainControl: false,
+        channelCount: 2,
+        echoCancellation: false,
+        latency: 0,
+        noiseSuppression: false,
+        sampleRate: 96000,
+        sampleSize: 16,
+        volume: 1.0
+    },
+    video: {
+        MediaSource: 'screen', 
+        width: 1920, 
+        height: 1080
+    }
+};
 
 /* ---------------------------------------- */
 let myname;
@@ -170,10 +200,8 @@ function add_newAudio(audio, audioStream, userid) {
    open/close camera and control streaming... */
 async function toggleCamera() {
     if (cameraStatus == false) {
-        myVideoStream = await navigator.mediaDevices.getUserMedia({
-            audio: false,
-            video: PPI_CAM
-        }).catch( (error) => {alert(error.message);} );
+        myVideoStream = await navigator.mediaDevices.getUserMedia(VIDEO_QUALITY)
+        .catch( (error) => {alert(error.message);} );
         if (myVideoStream) {
             add_newVideo(myVideoContainer, myVideo, myVideoStream, myVideoName, '您', myVideoStream.id);
             video_arrange();
@@ -199,10 +227,8 @@ async function toggleCamera() {
    open/close mic and control streaming... */
 async function toggleMic() {
     if (micStatus == false) {
-        myAudioStream = await navigator.mediaDevices.getUserMedia({
-            audio: true,
-            video: false
-        }).catch( (error) => {alert(error.message);} );
+        myAudioStream = await navigator.mediaDevices.getUserMedia(AUDIO_QUALITY)
+        .catch( (error) => {alert(error.message);} );
         if (myAudioStream) {
             add_newAudio(myAudio, myAudioStream, myid);
             brocastStreaming(myAudioStream);
@@ -230,10 +256,8 @@ async function toggleMic() {
    open/close screen sharing and control streaming... */
 async function toggleScreen() {
     if (screenStatus == false) {
-        myScreenStream = await navigator.mediaDevices.getDisplayMedia({
-            audio: true,
-            video: PPI_SCREEN
-        }).catch( (error) => {console.log(error.message);} );
+        myScreenStream = await navigator.mediaDevices.getDisplayMedia(SCREEN_QUALITY)
+        .catch( (error) => {console.log(error.message);} );
         if (myScreenStream) {
             add_newVideo(myScreenContainer, myScreen, myScreenStream, myScreenName, '您', myScreenStream.id);
             video_arrange();
