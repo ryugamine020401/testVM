@@ -43,13 +43,16 @@ function video_arrange() {
     let root = document.documentElement;
     if (video_count <= 1) {
         root.style.setProperty('--vh','580px');
-        root.style.setProperty('--vw','880px');
+        root.style.setProperty('--vw','950px');
+        root.style.setProperty('--vhpa','95%');
     } else if (video_count <= 4) {
         root.style.setProperty('--vh','280px');
-        root.style.setProperty('--vw','496px');
+        root.style.setProperty('--vw','495px');
+        root.style.setProperty('--vhpa','90%');
     } else {
         root.style.setProperty('--vh','220px');
-        root.style.setProperty('--vw','352px');
+        root.style.setProperty('--vw','355px');
+        root.style.setProperty('--vhpa','90%');
     }
 }
 
