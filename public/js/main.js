@@ -37,6 +37,21 @@ let myScreen = document.createElement('video');
 let myScreenName = document.createElement('div');
 
 /* ###################################################################### */
+function video_arrange() {
+    let video_count = document.querySelectorAll('video').length;
+    let root = document.documentElement;
+    if (video_count <= 1) {
+        root.style.setProperty('--vh','580px');
+        root.style.setProperty('--vw','880px');
+    } else if (video_count <= 4) {
+        root.style.setProperty('--vh','280px');
+        root.style.setProperty('--vw','496px');
+    } else {
+        root.style.setProperty('--vh','220px');
+        root.style.setProperty('--vw','352px');
+    }
+}
+
 /* p2p send stream:
    send stream pakage to client which is in the list */
 function brocastStreaming(stream) {
@@ -71,6 +86,7 @@ function listenStreaming() {
                 if (type == 'video') {
                     add_newVideo(container, video, remoteStream, videoName, username, call.peer);
                     video_arr = [video, ...video_arr];
+                    video_arrange();
                 } else if (type == 'audio') {
                     add_newAudio(audio, remoteStream, call.peer);
                     audio_arr = [audio, ...audio_arr];
@@ -84,6 +100,7 @@ function listenStreaming() {
                 video.remove();
                 videoName.remove();
                 container.remove();
+                video_arrange();
             }
         });
         socket.on('close-audio', (userid) => {
@@ -102,6 +119,7 @@ function listenStreaming() {
                 video.remove();
                 videoName.remove();
                 container.remove();
+                video_arrange();
             }
         });
     });
@@ -159,6 +177,7 @@ async function toggleCamera() {
         }).catch( (error) => {alert(error.message);} );
         if (myVideoStream) {
             add_newVideo(myVideoBox, myVideo, myVideoStream, myVideoName, '您', myid);
+            video_arrange();
             brocastStreaming(myVideoStream);
             cameraStatus = true;
             document.getElementById("camera-toggle").innerText = "關閉相機";
@@ -173,6 +192,7 @@ async function toggleCamera() {
             myVideoName.remove();
             myVideoBox.remove();
             myVideoStream = null;
+            video_arrange();
         }
         socket.emit('stop-videoStream', myid);
         cameraStatus = false;
@@ -223,6 +243,7 @@ async function toggleScreen() {
         }).catch( (error) => {console.log(error.message);} );
         if (myScreenStream) {
             add_newVideo(myScreenBox, myScreen, myScreenStream, myScreenName, '您');
+            video_arrange();
             brocastStreaming(myScreenStream);
             screenStatus = true;
             document.getElementById("screen-toggle").innerText = "關閉畫面分享";
@@ -237,6 +258,7 @@ async function toggleScreen() {
             myScreenName.remove();
             myScreenBox.remove();
             myScreenStream = null;
+            video_arrange();
         }
         socket.emit('stop-screenStream', myid);
         screenStatus = false;

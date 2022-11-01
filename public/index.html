@@ -11,9 +11,14 @@
     <script defer src="js/main.js"></script>
     <style>
         /* ------------------------------ */
+        :root {
+            --vh: 580px;
+            --vw: 880px;
+        }
         ::-webkit-scrollbar {
             display: none;
         }
+        /* ------------------------------ */
         h2 {
             text-align: center;
         }
@@ -38,12 +43,8 @@
             justify-content: Space-around;
         }
         .video-container {
-            /* height: 580px;
-            width: 880px; */
-            height: 280px;
-            width: 496px;
-            /* height: 220px;
-            width: 352px; */
+            height: var(--vh);
+            width: var(--vw);
             padding: 5px;
             border-width: 1px;
             margin: 0px;
