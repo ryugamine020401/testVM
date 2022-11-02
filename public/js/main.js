@@ -294,10 +294,11 @@ async function toggleScreen() {
 /* button onclick event:
    send a message to chatroom */
 function sendchat_to_Server() {
-    let message = document.getElementById("chat-input").value;
+    let input = document.getElementById("chat-input");
+    let message = input.value;
     if (message.replaceAll(' ', '').replaceAll('\n', '') == '') return;
     socket.emit('new-chat-message', {'username': myname, 'content': message});
-    document.getElementById("chat-input").value = '';
+    input.value = '';
 }
 
 /* ###################################################################### */
@@ -364,6 +365,7 @@ function socketInit() {
         room.append(name);
         room.append(content);
         room.innerHTML += `<div style="height:5px"></div>`;
+        room.scrollTop = room.scrollHeight;
     });
 
     /* load chatroom history */

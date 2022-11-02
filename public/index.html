@@ -19,131 +19,114 @@
             display: none;
         }
         /* ------------------------------ */
-        h2 {
-            text-align: center;
-        }
         body {
             background-color: #202124;
-            color: #eeeeee; 
+            color: #eeeeee;
         }
         video {
             height: 100%;
             width: 100%;
         }
-        /* ------------------------------ */
-        .btn_ctrl {
-            padding: 5px;
-        }
-        .topArea {
-            width: 100%;
-        }
-        .mainArea {
-            display: flex;
-            flex-direction: row;
-            width: 100%;
-            height: 675px;
-        }
-
-        .videoArea {
-            width: 75%;
-            order: 1;
-            padding: 5px;
-            border-width: 2px;
-            margin: 1px;
-            border-color: black;
-            border-style: solid;
-        }
-
-        .sideArea {
-            display: flex;
-            flex-direction: column;
-            width: 25%;
-            order: 2;
-            padding: 5px;
-            border-width: 2px;
-            margin: 1px;
-            border-color: black;
-            border-style: solid;
-        }
-
-        /* ------------------------------ */
-        .chatArea {
-            display: flex;
-            flex-direction: column;
-            height: 65%;
-            order: 1;
-            padding: 0px;
-            border-width: 1px;
-            margin: 2px;
-            border-color: black;
-            border-style: solid;
-        }
-
-        #chatroom {
-            height: 90%;
-            order: 1;
-            overflow: auto;
-            padding: 5px;
-            border-width: 1px;
-            margin: 2px;
-            /* border-color: black;
-            border-style: solid; */
-        }
-
         .text-wrapper {
             word-break: break-all;
             word-wrap: break-word;
         }
-
-        .chat_ctrl {
+        /* ------------------------------ */
+        .topArea {
+            width: 100%;
+            height: 10vh;
+        }
+        .mainArea {
+            width: 100%;
+            height: 85vh;
             display: flex;
             flex-direction: row;
-            height: 10%;
-            order: 2;
-            padding: 0px;
-            border-width: 1px;
-            margin: 2px;
-            /* border-color: black;
-            border-style: solid; */
         }
-
-        #chat-input {
-            flex: 9;
-            order: 1;
-            resize:none;
-            white-space: pre-wrap;
-            margin: 2px;
-            background-color: #202124;
-            color: #eeeeee;
-        }
-
-        #chat-send {
-            flex: 1;
-            order: 2;
-            margin: 2px;
-        }
-
         /* ------------------------------ */
-        .audienceArea {
-            height: 35%;
-            order: 2;
-            padding: 0px;
-            border-width: 1px;
-            margin: 2px;
+        #username {
+            text-align: center;
+            height: 30px;
+        }
+        .btn_ctrl {
+            margin: 5px;
+        }
+        .videoArea {
+            flex: 75;
+            border-width: 2px;
+            border-right: 1px;
             border-color: black;
             border-style: solid;
         }
-
-        #audience{
-            height: 75%;
-            overflow: auto;
-            padding: 2px;
+        .sideArea {
+            flex: 25;
+            border-width: 2px;
+            border-left: 1px;
+            border-color: black;
+            border-style: solid;
+            display: flex;
+            flex-direction: column;
+        }
+        /* ------------------------------ */
+        .chatArea {
+            flex: 7;
+            overflow: hidden;
+            border-width: 1px;
+            margin: 4px;
+            margin-bottom: 2px;
+            border-color: black;
+            border-style: solid;
+            display: flex;
+            flex-direction: column;
+        }
+        .audienceArea {
+            flex: 3;
+            overflow: hidden;
+            border-width: 1px;
+            margin: 4px;
+            margin-top: 2px;
+            border-color: black;
+            border-style: solid;
+            display: flex;
+            flex-direction: column;
+        }
+        /* ------------------------------ */
+        #chatroom {
+            flex: 9;
+            overflow: scroll;
+            padding: 5px;
             border-width: 1px;
             margin: 2px;
             /* border-color: black;
             border-style: solid; */
         }
-        
+        .chat_ctrl {
+            flex: 1;
+            display: flex;
+            margin: 2px;
+            flex-direction: row;
+        }
+        #chat-input {
+            flex: 9;
+            margin: 1px;
+            background-color: #202124;
+            color: #eeeeee;
+            resize:none;
+            white-space: pre-wrap;
+        }
+        #chat-send {
+            flex: 1;
+            margin: 1px;
+        }
+        /* ------------------------------ */
+        #audience{
+            flex: 1;
+            overflow: scroll;
+            padding: 5px;
+            border-width: 1px;
+            margin: 2px;
+            /* border-color: black;
+            border-style: solid; */
+        }
         /* ------------------------------ */
         #videoBox {
             height: 90%;
@@ -153,7 +136,6 @@
             flex-wrap: wrap;
             justify-content: Space-around;
         }
-
         .video-container {
             position: relative;
             height: var(--vh);
@@ -164,7 +146,6 @@
             border-color: black;
             border-style: solid;
         }
-
         .videoName {
             position: absolute;
             right : 0px;
@@ -180,16 +161,18 @@
             text-align: center;
             overflow: hidden;
         }
-
         /* ------------------------------ */
     </style>
 </head>
 <body>
     <!-- ###################################################################### -->
     <div class="topArea">
-        <h2 id="username">USER</h2>
+        <h2 id="username">
+            USER
+        </h2>
         <div class="btn_ctrl">
-            <input type="checkbox" id="muted-toggle"><span>視訊聲音</span>
+            <input type="checkbox" id="muted-toggle">
+            <span>視訊聲音</span>
             <button id="camera-toggle">開啟相機</button>
             <button id="mic-toggle">開啟麥克風</button>
             <button id="screen-toggle">開啟畫面分享</button>
