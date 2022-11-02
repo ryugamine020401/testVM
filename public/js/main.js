@@ -175,12 +175,15 @@ function add_newVideo(container, video, videoStream, videoName, username, stream
     video.addEventListener('loadedmetadata', () => {
         video.play();
     });
-    videoName.className = 'videoName'
+    videoName.className = 'videoName';
     container.className = 'video-container';
     container.id = 'video-' + streamId;
     container.append(video);
     container.append(videoName);
     videoBox.append(container);
+    videoName.addEventListener('click', () => {
+        video.requestFullscreen();
+    });
 }
 
 /* creat <audio> tag in DOM */
