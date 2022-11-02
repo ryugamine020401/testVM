@@ -73,38 +73,29 @@ function video_arrange() {
     let type = document.getElementById("video-layout").value;
     let video_count = document.querySelectorAll('video').length;
     let root = document.documentElement;
+    let multiple = 0;
     switch (type) {
         case 'auto':
             if (video_count <= 1) {
-                root.style.setProperty('--vh','580px');
-                root.style.setProperty('--vw','950px');
-                root.style.setProperty('--vhpa','95%');
+                multiple = 65;
             } else if (video_count <= 4) {
-                root.style.setProperty('--vh','280px');
-                root.style.setProperty('--vw','495px');
-                root.style.setProperty('--vhpa','90%');
+                multiple = 32;
             } else {
-                root.style.setProperty('--vh','220px');
-                root.style.setProperty('--vw','355px');
-                root.style.setProperty('--vhpa','90%');
+                multiple = 21;
             }
             break;
         case 'type1':
-            root.style.setProperty('--vh','580px');
-            root.style.setProperty('--vw','950px');
-            root.style.setProperty('--vhpa','95%');
+            multiple = 65;
             break;
         case 'type2':
-            root.style.setProperty('--vh','280px');
-            root.style.setProperty('--vw','495px');
-            root.style.setProperty('--vhpa','90%');
+            multiple = 32;
             break;
         case 'type3':
-            root.style.setProperty('--vh','220px');
-            root.style.setProperty('--vw','355px');
-            root.style.setProperty('--vhpa','90%');
+            multiple = 21;
             break;
     }
+    root.style.setProperty('--vh',`${multiple *9}px`);
+    root.style.setProperty('--vw',`${multiple *16}px`);
 }
 
 /* p2p send stream:
@@ -312,7 +303,10 @@ function sendchat_to_Server() {
 /* ###################################################################### */
 function Init() {
     /* add event in DOM */
-    myname = prompt('請輸入名字', 'USER') || 'USER';
+    myname = prompt('請輸入稱呼 (最多10個字)', 'USER') || 'USER';
+    while (myname.length > 10) {
+        myname = prompt('稱呼過長，請重新輸入 (最多10個字)', 'USER') || 'USER';
+    }
     document.getElementById("username").innerText = myname;
     document.getElementById("camera-toggle").addEventListener('click', toggleCamera);
     document.getElementById("mic-toggle").addEventListener('click', toggleMic);
