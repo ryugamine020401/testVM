@@ -12,8 +12,8 @@ let myPeer = new Peer(undefined, {
 const VIDEO_QUALITY = {
     audio: false,
     video: {
-        width: 768,
-        height: 432
+        width: 192, //768,
+        height: 108 //432
     }
 };
 
@@ -36,7 +36,8 @@ const SCREEN_QUALITY = {
     video: {
         MediaSource: 'screen', 
         width: 1920, 
-        height: 1080
+        height: 1080,
+        frameRate: { max: 60 }
     }
 };
 
@@ -69,21 +70,32 @@ let myScreenName = document.createElement('div');
 
 /* ###################################################################### */
 function video_arrange() {
+    let type = document.getElementById("video-layout").value;
     let video_count = document.querySelectorAll('video').length;
     let root = document.documentElement;
-    if (video_count <= 1) {
-        root.style.setProperty('--vh','580px');
-        root.style.setProperty('--vw','950px');
-        root.style.setProperty('--vhpa','95%');
-    } else if (video_count <= 4) {
-        root.style.setProperty('--vh','280px');
-        root.style.setProperty('--vw','495px');
-        root.style.setProperty('--vhpa','90%');
-    } else {
-        root.style.setProperty('--vh','220px');
-        root.style.setProperty('--vw','355px');
-        root.style.setProperty('--vhpa','90%');
+    let multiple = 0;
+    switch (type) {
+        case 'auto':
+            if (video_count <= 1) {
+                multiple = 65;
+            } else if (video_count <= 4) {
+                multiple = 32;
+            } else {
+                multiple = 21;
+            }
+            break;
+        case 'type1':
+            multiple = 65;
+            break;
+        case 'type2':
+            multiple = 32;
+            break;
+        case 'type3':
+            multiple = 21;
+            break;
     }
+    root.style.setProperty('--vh',`${multiple *9}px`);
+    root.style.setProperty('--vw',`${multiple *16}px`);
 }
 
 /* p2p send stream:
@@ -163,12 +175,15 @@ function add_newVideo(container, video, videoStream, videoName, username, stream
     video.addEventListener('loadedmetadata', () => {
         video.play();
     });
-    videoName.className = 'videoName'
+    videoName.className = 'videoName';
     container.className = 'video-container';
     container.id = 'video-' + streamId;
     container.append(video);
     container.append(videoName);
     videoBox.append(container);
+    videoName.addEventListener('click', () => {
+        video.requestFullscreen();
+    });
 }
 
 /* creat <audio> tag in DOM */
@@ -282,27 +297,33 @@ async function toggleScreen() {
 /* button onclick event:
    send a message to chatroom */
 function sendchat_to_Server() {
-    let message = document.getElementById("chat-input").value;
+    let input = document.getElementById("chat-input");
+    let message = input.value;
     if (message.replaceAll(' ', '').replaceAll('\n', '') == '') return;
     socket.emit('new-chat-message', {'username': myname, 'content': message});
-    document.getElementById("chat-input").value = '';
+    input.value = '';
 }
 
 /* ###################################################################### */
 function Init() {
     /* add event in DOM */
-    myname = prompt('請輸入名字', 'USER') || 'USER';
+    myname = prompt('請輸入稱呼 (最多10個字)', 'USER') || 'USER';
+    while (myname.length > 10) {
+        myname = prompt('稱呼過長，請重新輸入 (最多10個字)', 'USER') || 'USER';
+    }
     document.getElementById("username").innerText = myname;
-    document.getElementById("chat-send").addEventListener('click', sendchat_to_Server);
     document.getElementById("camera-toggle").addEventListener('click', toggleCamera);
     document.getElementById("mic-toggle").addEventListener('click', toggleMic);
     document.getElementById("screen-toggle").addEventListener('click', toggleScreen);
+    document.getElementById("video-layout").addEventListener('change', video_arrange);
+    document.getElementById("chat-send").addEventListener('click', sendchat_to_Server);
     document.getElementById('chat-input').addEventListener('keyup', (e) => {
         if (e.code == "Enter" || e.code == "NumpadEnter") {
             sendchat_to_Server();
             document.getElementById('chat-input')[0].focus();
         }
     });
+    
     /* we dont want to listen voice from ourself */
     myVideo.muted = true;
     myAudio.muted = true;
@@ -347,6 +368,7 @@ function socketInit() {
         room.append(name);
         room.append(content);
         room.innerHTML += `<div style="height:5px"></div>`;
+        room.scrollTop = room.scrollHeight;
     });
 
     /* load chatroom history */
