@@ -268,6 +268,16 @@ async function toggleScreen() {
             brocastStreaming(myScreenStream);
             screenStatus = true;
             document.getElementById("screen-toggle").innerText = "關閉畫面分享";
+            myScreenStream.getVideoTracks()[0].onended = function () {
+                /* stop fetch media */
+                myScreenStream.getTracks().forEach((track) => {track.stop();});
+                myScreenContainer.remove();
+                video_arrange();
+                socket.emit('stop-videoStream', myid, myScreenStream.id);
+                myScreenStream = null;
+                screenStatus = false;
+                document.getElementById("screen-toggle").innerText = "開啟畫面分享";
+            }
         }
     } else {
         if (myScreenStream) {
