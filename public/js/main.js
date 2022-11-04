@@ -309,11 +309,6 @@ function join() {
 }
 
 function Init() {
-    /* container display init */
-    document.querySelector('.confirmArea').style.display = 'flex';
-    document.querySelector('.topArea').style.display = 'none';
-    document.querySelector('.mainArea').style.display = 'none';
-
     /* add join event */
     let join_btn = document.getElementById("join-check");
     join_btn.addEventListener('click', () => {

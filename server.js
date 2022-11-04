@@ -31,12 +31,13 @@ let server = https.createServer((request, response) => {
     let path = url.parse(request.url).pathname;
     switch (path) {
         case '/':
-            response.writeHead(200, {'Content-Type': 'text/html'});
-            response.write('<h1>You Pick The Wrong House Fool</h1>\
-                <img src="https://i1.sndcdn.com/artworks-fBvQUKQfO8Kervzy-PnlM0g-t500x500.jpg">');
-            response.end();
-            break;
-        case '/index.html':
+            path = '/index.html'
+            // response.writeHead(200, {'Content-Type': 'text/html'});
+            // response.write('<h1>You Pick The Wrong House Fool</h1>\
+            //     <img src="https://i1.sndcdn.com/artworks-fBvQUKQfO8Kervzy-PnlM0g-t500x500.jpg">');
+            // response.end();
+            // break;
+        // case '/index.html':
         case '/js/main.js':
             fs.readFile(__dirname + '/public' + path, (error, data) => {
                 if (error) {

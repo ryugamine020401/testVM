@@ -12,7 +12,7 @@
         node server.js
 
         - go to
-        localhost:3001/index.html
+        localhost:3001/
 
 ### Auto Refresh
 
