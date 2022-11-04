@@ -343,10 +343,7 @@ function Init() {
     document.getElementById("video-layout").addEventListener('change', video_arrange);
     document.getElementById("chat-send").addEventListener('click', sendchat_to_Server);
     document.getElementById('chat-input').addEventListener('keyup', (e) => {
-        if (e.code == "Enter" || e.code == "NumpadEnter") {
-            sendchat_to_Server();
-            document.getElementById('chat-input')[0].focus();
-        }
+        if (e.code == "Enter" || e.code == "NumpadEnter") sendchat_to_Server();
     });
     
     /* we dont want to listen voice from ourself */
