@@ -51,10 +51,9 @@ let cameraStatus = false;
 let micStatus = false;
 let screenStatus = false;
 
-let firstVoice = false;  // for autoplay
-let mutedState = true;  // for autoplay
-let video_arr = [];  // for mute video
-let audio_arr = []; // for mute audio
+let mutedState = false;
+let video_arr = [];
+let audio_arr = [];
 
 /* ---------------------------------------- */
 let myVideoStream = null;
@@ -191,17 +190,7 @@ function add_newAudio(audio, audioStream, userid) {
     let audioBox = document.getElementById("audioBox");
     audio.srcObject = audioStream;
     audio.addEventListener('loadedmetadata', () => {
-        if (firstVoice) {
-            audio.play();
-        } else {
-            audio.pause();
-            document.addEventListener('click', () => {
-                if (firstVoice) audio.play();
-            });
-            document.addEventListener('mousemove', () => {
-                if (firstVoice) audio.play();
-            });
-        }
+        audio.play();
     });
     audioBox.append(audio);
     let audienceName = document.getElementById('audience-' + userid);
@@ -305,13 +294,44 @@ function sendchat_to_Server() {
 }
 
 /* ###################################################################### */
+/* remove autoplay limit */
+function join() {
+    let audio = document.createElement("audio");
+    audio.src = "sound/join.mp3";
+    audio.addEventListener('play', () => {
+        document.querySelector('.confirmArea').style.display = 'none';
+        document.querySelector('.topArea').style.display = 'block';
+        document.querySelector('.mainArea').style.display = 'flex';
+        /* send real request to server when audio ended */
+        socket.emit('new-user-request', myid, myname);
+    });
+    audio.play();
+}
+
 function Init() {
+    /* container display init */
+    document.querySelector('.confirmArea').style.display = 'flex';
+    document.querySelector('.topArea').style.display = 'none';
+    document.querySelector('.mainArea').style.display = 'none';
+
+    /* add join event */
+    let join_btn = document.getElementById("join-check");
+    join_btn.addEventListener('click', () => {
+        join_btn.disabled = true;
+        let name_input = document.getElementById("name-input");
+        myname = name_input.value;
+        if (myname.length > 15) {
+            join_btn.disabled = false;
+            name_input.value = '';
+            alert('稱呼過長，請重新輸入 (最多15個字)');
+        } else {
+            if (myname == '') myname = 'USER';
+            document.getElementById("username").innerText = myname;
+            join();
+        }
+    });
+
     /* add event in DOM */
-    myname = prompt('請輸入稱呼 (最多10個字)', 'USER') || 'USER';
-    while (myname.length > 10) {
-        myname = prompt('稱呼過長，請重新輸入 (最多10個字)', 'USER') || 'USER';
-    }
-    document.getElementById("username").innerText = myname;
     document.getElementById("camera-toggle").addEventListener('click', toggleCamera);
     document.getElementById("mic-toggle").addEventListener('click', toggleMic);
     document.getElementById("screen-toggle").addEventListener('click', toggleScreen);
@@ -331,18 +351,9 @@ function Init() {
 
     /* bind audio sounds ctrl to checkbox */
     let muted_toggle = document.getElementById("muted-toggle");
+    muted_toggle.checked = true;
     muted_toggle.addEventListener('click', () => {
-        if (muted_toggle.checked == false) {
-            mutedState = true;
-        } else {
-            if (firstVoice == false) {
-                let audio = document.createElement("audio");
-                audio.src = "sound/join.mp3";
-                audio.play();
-                firstVoice = true;
-            }
-            mutedState = false;
-        }
+        mutedState = !muted_toggle.checked;
         audio_arr.map( (audio) => {
             audio.muted = mutedState;
         });
@@ -426,11 +437,10 @@ function socketInit() {
     /* peer init when client open the page, will receive a peer-id */
     myPeer.on('open', (id) => {
         myid = id;
-        socket.emit('new-user-request', myid, myname);
     });
 }
 
 /* ###################################################################### */
 Init();
-listenStreaming();
 socketInit();
+listenStreaming();

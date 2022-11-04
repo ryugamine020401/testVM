@@ -93,13 +93,15 @@ server_io.on('connection', (socket) => {
     /* new client want to add into p2p network */
     socket.on('new-user-request', (userid, username) => {
         /* add new client info to arr */
-        socketid_arr = [...socketid_arr, socket.id];
-        userid_arr = [...userid_arr, userid];
-        username_arr = [...username_arr, username];
-        /* update clients data */
-        server_io.emit('new-user-id', userid, username);
-        server_io.emit('all-user-id', userid_arr, username_arr);
-        socket.emit('chat-history', chat_history);
+        if (socketid_arr.indexOf(socket.id) == -1) {
+            socketid_arr = [...socketid_arr, socket.id];
+            userid_arr = [...userid_arr, userid];
+            username_arr = [...username_arr, username];
+            /* update clients data */
+            server_io.emit('new-user-id', userid, username);
+            server_io.emit('all-user-id', userid_arr, username_arr);
+            socket.emit('chat-history', chat_history);
+        }
     });
 
     /* ---------------------------------------- */
