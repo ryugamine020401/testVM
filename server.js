@@ -33,12 +33,13 @@ let server = https.createServer(option, (request, response) => {
     let path = url.parse(request.url).pathname;
     switch (path) {
         case '/':
-            response.writeHead(200, {'Content-Type': 'text/html'});
-            response.write('<h1>You Pick The Wrong House Fool</h1>\
-                <img src="https://i1.sndcdn.com/artworks-fBvQUKQfO8Kervzy-PnlM0g-t500x500.jpg">');
-            response.end();
-            break;
-        case '/index.html':
+            path = '/index.html'
+            // response.writeHead(200, {'Content-Type': 'text/html'});
+            // response.write('<h1>You Pick The Wrong House Fool</h1>\
+            //     <img src="https://i1.sndcdn.com/artworks-fBvQUKQfO8Kervzy-PnlM0g-t500x500.jpg">');
+            // response.end();
+            // break;
+        // case '/index.html':
         case '/js/main.js':
             fs.readFile(__dirname + '/public' + path, (error, data) => {
                 if (error) {
@@ -95,13 +96,15 @@ server_io.on('connection', (socket) => {
     /* new client want to add into p2p network */
     socket.on('new-user-request', (userid, username) => {
         /* add new client info to arr */
-        socketid_arr = [...socketid_arr, socket.id];
-        userid_arr = [...userid_arr, userid];
-        username_arr = [...username_arr, username];
-        /* update clients data */
-        server_io.emit('new-user-id', userid, username);
-        server_io.emit('all-user-id', userid_arr, username_arr);
-        socket.emit('chat-history', chat_history);
+        if (socketid_arr.indexOf(socket.id) == -1) {
+            socketid_arr = [...socketid_arr, socket.id];
+            userid_arr = [...userid_arr, userid];
+            username_arr = [...username_arr, username];
+            /* update clients data */
+            server_io.emit('new-user-id', userid, username);
+            server_io.emit('all-user-id', userid_arr, username_arr);
+            socket.emit('chat-history', chat_history);
+        }
     });
 
     /* ---------------------------------------- */
